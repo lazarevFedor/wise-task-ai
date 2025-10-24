@@ -5,16 +5,22 @@ from exceptions import LLMClientError, LLMTimeoutError, LLMUnavailableError
 
 
 class LLMClient:
-    def __init__(self, ollama_urls: List[str] = None):
+    def __init__(self, ollama_urls: List[str] = None, max_concurrent_requests: int = 3, request_timeout: float = 60.0):
         self.ollama_urls = ollama_urls or ["http://localhost:11434"]
-
+        self.max_concurrent_requests = max_concurrent_requests
+        self.semaphore = asyncio.Semaphore(max_concurrent_requests)
+        self.request_timeout = request_timeout
         self.session: Optional[aiohttp.ClientSession] = None
-
         self.current_url_index = 0
+        self._lock = asyncio.Lock()
+        self._request_counter = 0
+        self._error_counter = 0
+
 
     async def initialize(self):
         if self.session is None:
-            self.session = aiohttp.ClientSession()
+            timeout = aiohttp.ClientTimeout(total=self.request_timeout)
+            self.session = aiohttp.ClientSession(timeout=timeout)
 
     async def generate(self, prompt: str) -> str:
         if self.session is None:
