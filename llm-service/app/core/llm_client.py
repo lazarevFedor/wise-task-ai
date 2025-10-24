@@ -54,3 +54,14 @@ class LLMClient:
         if self.session and not self.session.closed:
             await self.session.close()
             self.session = None
+
+    async def cm_enter(self):
+        try:
+            await self.initialize()
+            return self
+        except Exception as e:
+            await self.close()
+            raise LLMClientError(f'Failed to initialize LLMClient: {str(e)}')
+
+    async def cm_exit(self):
+        await self.close()
