@@ -1,0 +1,12 @@
+syntax = "proto3"
+
+packege api;
+
+message PromptRequest{
+	string text = 1
+}
+
+message PromptResponse{
+	string text = 1
+}
+
