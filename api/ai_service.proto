@@ -1,6 +1,6 @@
 syntax = "proto3"
 
-packege api;
+package api;
 
 message PromptRequest{
 	string text = 1
@@ -9,4 +9,10 @@ message PromptRequest{
 message PromptResponse{
 	string text = 1
 }
+
+message FeedbackRequest{
+	int mark = 1
+}
+
+message FeedbackResponse{}
 
