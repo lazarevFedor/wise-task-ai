@@ -7,6 +7,8 @@ from exceptions import LLMClientError, LLMTimeoutError, LLMUnavailableError
 class LLMClient:
     def __init__(self, ollama_urls: List[str] = None, max_concurrent_requests: int = 3, request_timeout: float = 60.0):
         self.ollama_urls = ollama_urls or ["http://localhost:11434"]
+        if not self.ollama_urls:
+            raise ValueError('No ollama urls provided')
         self.max_concurrent_requests = max_concurrent_requests
         self.semaphore = asyncio.Semaphore(max_concurrent_requests)
         self.request_timeout = request_timeout
