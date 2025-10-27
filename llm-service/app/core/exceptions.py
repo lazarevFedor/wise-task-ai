@@ -17,10 +17,3 @@ class LLMUnavailableError(LLMClientError):
         self.url = url
         self.error_description = error_description
         super().__init__(f'Operation {url} unavailable at {error_description}.')
-
-
-class LLMOverloadError(LLMClientError):
-    """LLM Mover Load Error"""
-    def __init__(self, max_concurrent_requests: int):
-        self.max_concurrent_requests = max_concurrent_requests
-        super().__init__(f'Reached maximum concurrent requests: {max_concurrent_requests}.')
