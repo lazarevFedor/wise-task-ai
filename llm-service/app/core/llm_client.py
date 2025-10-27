@@ -25,32 +25,53 @@ class LLMClient:
             timeout = aiohttp.ClientTimeout(total=self.request_timeout)
             self.session = aiohttp.ClientSession(timeout=timeout)
 
-    async def generate(self, prompt: str) -> str:
-        if self.session is None:
-            await self.initialize()
+    async def _get_next_url(self) -> Optional[str]:
+        """Gets the next url from the ollama_urls list."""
+        async with self._lock:
+            url = self.ollama_urls[self.current_url_index]
+            self.current_url_index = (self.current_url_index + 1) % len(self.ollama_urls)
+            return url
 
-        url = self.ollama_urls[0] + "/api/generate"
+    async def generate(self, prompt: str, model: str = None) -> str:
+        """Generates answer from the given prompt."""
+        base_url = await self._get_next_url()
+        url = f'{base_url}/api/generate'
+
+        if self.session is None:
+            raise RuntimeError(
+                'LLMClient must be used as async context manager. '
+                'Use: async with LLMClient() as client:'
+            )
 
         data = {
-            "model": "llama3.2:3b-instruct-q4_K_M",
-            "prompt": prompt,
-            "stream": False
+            'model': model or "llama3.2:3b-instruct-q4_K_M",
+            'prompt': prompt,
+            'stream': False,
         }
 
-        try:
-            async with self.session.post(url, data=data) as response:
-                if response.status == 200:
-                    result = await response.json()
-                    return result.get("response", "")
-                else:
-                    error = await response.text()
-                    raise LLMUnavailableError(url, f'HTTP status {response.status}: {error}')
+        self._request_counter += 1
 
-        except aiohttp.ClientError:
-            raise LLMUnavailableError(url, "Failed to connect to server")
-        except asyncio.Timeout:
-            raise LLMTimeoutError("generate", 60.0)
+        try:
+            async with self.semaphore:
+                async with self.session.post(url, json=data) as response:
+                    if response.status == 200:
+                        result = await response.json()
+                        return result.get('response', '')
+                    else:
+                        error_description = await response.text()
+                        self._error_counter += 1
+                        raise LLMUnavailableError(
+                            url=url,
+                            error_description=f'HTTP {response.status}: {error_description}',
+                        )
+        except asyncio.TimeoutError:
+            self._error_counter += 1
+            raise LLMTimeoutError('generate', self.request_timeout)
+        except aiohttp.ClientConnectorError as e:
+            self._error_counter += 1
+            raise LLMUnavailableError(url, f'Connection error: {e}')
         except Exception as e:
+            self._error_counter += 1
             raise LLMClientError(f'Unknown error: {str(e)}')
 
     async def close(self):
