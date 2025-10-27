@@ -18,6 +18,7 @@ class LLMClient:
 
 
     async def initialize(self):
+        """Initialise the session."""
         if self.session is None:
             timeout = aiohttp.ClientTimeout(total=self.request_timeout)
             self.session = aiohttp.ClientSession(timeout=timeout)
@@ -51,11 +52,13 @@ class LLMClient:
             raise LLMClientError(f'Unknown error: {str(e)}')
 
     async def close(self):
+        """Close the session."""
         if self.session and not self.session.closed:
             await self.session.close()
             self.session = None
 
-    async def cm_enter(self):
+    async def __aenter__(self):
+        """Async context manager."""
         try:
             await self.initialize()
             return self
@@ -63,5 +66,6 @@ class LLMClient:
             await self.close()
             raise LLMClientError(f'Failed to initialize LLMClient: {str(e)}')
 
-    async def cm_exit(self):
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager."""
         await self.close()
