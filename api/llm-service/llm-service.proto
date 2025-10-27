@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+option go_package = ""; // Кириллу: тебе надо сюда свою директорию для сгенерированного по proto кода написать, чтобы мог grpc-клиентов использовать.
+package llm;
+
+// Кириллу: загрузи пж в репозиторий нужный гугловские файлы как в практике было. Подправь если надо импорты и раскомментируй
+// import "google/api/annotations.proto";
+// import "google/api/openapi.proto";
+
+service LLMService {
+  rpc Generate(GenerateRequest) returns (GenerateResponse);  // Запрос на генерацию
+  rpc HealthCheck(HealthRequest) returns (HealthResponse);  // Проверка здоров ли сервак с моделью
+}
+
+message GenerateRequest {
+  string question = 1;
+  repeated string context = 2;  // Repeated так как источников может быть много, и лучше инфу из них передавать массивом строк
+}
+
+message GenerateResponse {
+  string answer = 1;
+  double processingTime = 2;  // Время которое заняла генерация. Можно выдать в конце ответа пользователю.
+  string errorMessage = 3;  // Если ошибка во время генерации -- не пусто
+}
+
+message HealthRequest {
+
+}
+
+message HealthResponse {
+  bool healthy = 1;
+  string status_message = 2;  // Детали здоровья сервиса. Если не здоров -- здесь будет написана ошибка.
+}
