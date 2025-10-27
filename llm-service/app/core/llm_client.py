@@ -69,3 +69,8 @@ class LLMClient:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager."""
         await self.close()
+        if exc_type is not None:
+            # Место для лога. Убрать return None
+            return None
+        else:
+            return False
