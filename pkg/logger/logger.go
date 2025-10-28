@@ -19,13 +19,14 @@ type Logger struct{
 	l *zap.Logger
 }
 
-func NewLogger(ctx context.Context) (context.Context, err){
+func NewLogger(ctx context.Context) (*Logger, err){
 	logger, err := zap.NewDevelopment()
 	if err != nil{
 		return nil, err
 	}
-	ctx = context.WithValue(ctx, Key, &Logger{logger})
-	return ctx, nil
+	logger = &Logger{logger}
+	ctx = context.WithValue(ctx, Key, logger)
+	return logger, nil
 }
 
 func GetLoggerFromCtx(ctx context.Context) *Logger{
