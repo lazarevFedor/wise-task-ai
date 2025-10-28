@@ -1,18 +1,22 @@
-syntax = "proto3"
+syntax = "proto3";
 
-package api;
+package
 
 message PromptRequest{
-	string text = 1
+	string text = 1;
 }
 
 message PromptResponse{
-	string text = 1
+	string text = 1;
 }
 
 message FeedbackRequest{
-	int mark = 1
+	int32 mark = 1;
 }
 
 message FeedbackResponse{}
 
+service AIService{
+	rpc Prompt(PromptRequest) returns (PromptResponse);
+	rpc Feedback(FeedbackRequest) returns (FeedbackResponse);
+}
