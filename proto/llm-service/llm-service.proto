@@ -1,11 +1,10 @@
 syntax = "proto3";
 
-option go_package = ""; // Кириллу: тебе надо сюда свою директорию для сгенерированного по proto кода написать, чтобы мог grpc-клиентов использовать.
+option go_package = "pkg/api";
 package llm;
 
-// Кириллу: загрузи пж в репозиторий нужный гугловские файлы как в практике было. Подправь если надо импорты и раскомментируй
-// import "google/api/annotations.proto";
-// import "google/api/openapi.proto";
+import "google/api/annotations.proto";
+import "google/api/openapi.proto";
 
 service LLMService {
   rpc Generate(GenerateRequest) returns (GenerateResponse);  // Запрос на генерацию
