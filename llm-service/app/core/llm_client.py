@@ -6,6 +6,12 @@ from logger import get_logger
 
 
 class LLMClient:
+    """Class LLMClient implements interaction
+    with Ollama LLM. This client receives input promt
+    and context from the DB from Main-server, generates an answer
+    using Ollama LLM and returns the response.
+    """
+
     def __init__(self, ollama_urls: List[str] = None, max_concurrent_requests: int = 3, request_timeout: float = 60.0):
         """TODO: docstrings for method"""
         self.logger = get_logger(__name__)
