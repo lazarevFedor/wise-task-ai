@@ -2,10 +2,19 @@ import aiohttp
 import asyncio
 from typing import List, Optional
 from exceptions import LLMClientError, LLMTimeoutError, LLMUnavailableError
+from logger import get_logger
 
 
 class LLMClient:
     def __init__(self, ollama_urls: List[str] = None, max_concurrent_requests: int = 3, request_timeout: float = 60.0):
+        """TODO: docstrings for method"""
+        self.logger = get_logger(__name__)
+
+        self.logger.info(
+            'Initializing LLMClient: max_concurrent_requests = %d',
+            max_concurrent_requests
+        )
+
         self.ollama_urls = ollama_urls or ["http://localhost:11434"]
         if not self.ollama_urls:
             raise ValueError('No ollama urls provided')
@@ -17,6 +26,7 @@ class LLMClient:
         self._lock = asyncio.Lock()
         self._request_counter = 0
         self._error_counter = 0
+        self.logger.info('Initializing LLMClient: client created. List of Ollama URLs: %s', str(self.ollama_urls))
 
 
     async def initialize(self):
@@ -60,15 +70,18 @@ class LLMClient:
                     else:
                         error_description = await response.text()
                         self._error_counter += 1
+                        self.logger.error(f'LLMClient: Got error: {error_description}, error code: {response.status}')
                         raise LLMUnavailableError(
                             url=url,
                             error_description=f'HTTP {response.status}: {error_description}',
                         )
         except asyncio.TimeoutError:
             self._error_counter += 1
+            self.logger.warning(f'LLMClient: Got error: {asyncio.TimeoutError}, timeout: {self.request_timeout}')
             raise LLMTimeoutError('generate', self.request_timeout)
         except aiohttp.ClientConnectorError as e:
             self._error_counter += 1
+            self.logger.error(f'LLMClient: Got error: {e}, error: {e}')
             raise LLMUnavailableError(url, f'Connection error: {e}')
         except Exception as e:
             self._error_counter += 1
@@ -93,7 +106,7 @@ class LLMClient:
         """Async context manager."""
         await self.close()
         if exc_type is not None:
-            # Место для лога. Убрать return None
-            return None
-        else:
+            self.logger.critical(f'LLMClient: Got error: {exc_type}, error: {exc_val}')
             return False
+        else:
+            return None
