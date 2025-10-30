@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+option go_package = "pkg";
+
+package api;
+
+message PromptRequest{
+	string text = 1;
+}
+
+message PromptResponse{
+	string text = 1;
+}
+
+message FeedbackRequest{
+	int32 mark = 1;
+}
+
+message FeedbackResponse{}
+
+service AIService{
+	rpc Prompt(PromptRequest) returns (PromptResponse);
+	rpc Feedback(FeedbackRequest) returns (FeedbackResponse);
+}
