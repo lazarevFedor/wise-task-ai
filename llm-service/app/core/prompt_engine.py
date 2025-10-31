@@ -12,5 +12,5 @@ class PromptEngine:
     def _get_definition_template(self):
         pass
 
-    def _get_explanation_template(self):
-        pass
+        return template
+    
