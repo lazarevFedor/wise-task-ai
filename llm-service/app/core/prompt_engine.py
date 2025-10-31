@@ -2,7 +2,14 @@ from logger import get_logger
 
 
 class PromptEngine:
+    """
+    Prompt Engine generates prompts with user questions and relevant contexts
+    from Knowledge Data Base for Ollama LLM.
+    """
+
     def __init__(self, prompts_dir):
+        """Initialize PromptEngine:
+        initialize templates dict and load prompt templates"""
         self.logger = get_logger(__name__)
         self.prompts_dir = prompts_dir  # later catch None val
         self.templates = {}
@@ -11,6 +18,8 @@ class PromptEngine:
         self.logger.info('PromptEngine: prompt engine initialized')
 
     def _load_templates(self):
+        """Load prompt templates
+        and add them into dictionary."""
         try:
             for template_file in self.prompts_dir.rglob('*.xml'):
                 template_name = template_file.stem
@@ -22,6 +31,8 @@ class PromptEngine:
             raise
 
     def build_prompt(self, template_name, **placeholders):
+        """Build prompt template with placeholders
+        -- user question and relevant contexts"""
         if self.templates is None:
             self.logger.critical('PromptEngine: no templates loaded')
             raise Exception('PromptEngine: no templates loaded')
