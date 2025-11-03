@@ -8,7 +8,7 @@ class TestLLMClient:
     def llm_client(self):
         """Create an instance of LLMClient"""
         return LLMClient(
-            ollama_urls=['http://localhost:11434', 'http://backup:11434'],
+            ollama_urls=['http://localhost:11434', 'http://localhost:11435'],
             max_concurrent_requests=2,
             request_timeout=30.0
         )
@@ -21,17 +21,11 @@ class TestLLMClient:
             mock_session_class.return_value = mock_session
             mock_session.closed = False
 
-            # Создаем правильный асинхронный контекстный менеджер для post
             mock_post_context_manager = AsyncMock()
             mock_response = AsyncMock()
-            mock_response.status = 200
-            mock_response.json.return_value = {'response': 'Ответ'}
-            mock_response.text.return_value = 'Error message'
 
             mock_post_context_manager.__aenter__.return_value = mock_response
             mock_post_context_manager.__aexit__.return_value = None
-
-            mock_session.post.return_value = mock_post_context_manager
 
             yield mock_session
 
@@ -68,7 +62,7 @@ class TestLLMClient:
     async def test_generate_without_session_raises_error(self, llm_client):
         """Test for generation without session raises error"""
         with pytest.raises(RuntimeError) as exc_info:
-            await llm_client.generate("Вопрос")
+            await llm_client.generate('Question')
 
         assert 'async context manager' in str(exc_info.value)
 

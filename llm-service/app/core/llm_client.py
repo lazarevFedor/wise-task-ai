@@ -7,7 +7,7 @@ from .logger import get_logger
 
 class LLMClient:
     """Class LLMClient implements interaction
-    with Ollama LLM. This client receives input promt
+    with Ollama LLM. This client receives input prompt
     and context from the DB from Main-server, generates an answer
     using Ollama LLM and returns the response.
     """
