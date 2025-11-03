@@ -21,6 +21,11 @@ class PromptEngine:
         """Load prompt templates
         and add them into dictionary."""
         try:
+            template_files = list(self.prompts_dir.rglob('*.xml'))
+            if not template_files:
+                self.logger.critical('PromptEngine: no template files found')
+                raise Exception('No template files found in directory')
+
             for template_file in self.prompts_dir.rglob('*.xml'):
                 template_name = template_file.stem
                 with open(template_file, 'r', encoding='utf8') as f:
