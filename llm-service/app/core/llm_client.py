@@ -1,8 +1,8 @@
 import aiohttp
 import asyncio
 from typing import List, Optional
-from exceptions import LLMClientError, LLMTimeoutError, LLMUnavailableError
-from logger import get_logger
+from .exceptions import LLMClientError, LLMTimeoutError, LLMUnavailableError
+from .logger import get_logger
 
 
 class LLMClient:
@@ -21,9 +21,13 @@ class LLMClient:
             max_concurrent_requests
         )
 
-        self.ollama_urls = ollama_urls or ['http://localhost:11434']
-        if not self.ollama_urls:
-            raise ValueError('No ollama urls provided')
+        if ollama_urls is None:
+            self.ollama_urls = ['http://localhost:11434']
+        else:
+            if not ollama_urls:
+                raise ValueError('No ollama urls provided')
+            self.ollama_urls = ollama_urls
+
         self.max_concurrent_requests = max_concurrent_requests
         self.semaphore = asyncio.Semaphore(max_concurrent_requests)
         self.request_timeout = request_timeout
