@@ -33,7 +33,7 @@ class PromptEngine:
                 self.logger.info(f'PromptEngine: template {template_name} loaded')
         except Exception as e:
             self.logger.critical(f'PromptEngine: template loading failed: {e}')
-            raise
+            raise Exception('PromptEngine: template loading failed') from e
 
     def build_prompt(self, template_name, **placeholders):
         """Build prompt template with placeholders
