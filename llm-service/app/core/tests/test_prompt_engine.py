@@ -84,8 +84,8 @@ class TestPromptEngine:
     </response_structure>
 </prompt>"""
 
-        (prompts_dir / "definition.xml").write_text(definition_template, encoding='utf-8')
-        (prompts_dir / "explanation.xml").write_text(explanation_template, encoding='utf-8')
+        (prompts_dir / 'definition.xml').write_text(definition_template, encoding='utf-8')
+        (prompts_dir / 'explanation.xml').write_text(explanation_template, encoding='utf-8')
 
         yield prompts_dir
         shutil.rmtree(temp_dir)
@@ -94,28 +94,28 @@ class TestPromptEngine:
         """Test downloading templates from prompt engine"""
         engine = PromptEngine(temp_prompts_dir)
 
-        assert "definition" in engine.templates
-        assert "explanation" in engine.templates
+        assert 'definition' in engine.templates
+        assert 'explanation' in engine.templates
         assert len(engine.templates) == 2
 
     def test_build_definition_prompt(self, temp_prompts_dir):
         """Test building definition prompt"""
         engine = PromptEngine(temp_prompts_dir)
 
-        context = "Граф — это совокупность непустого множества вершин и наборов упорядоченных или неупорядоченных пар вершин."
-        question = "Что такое граф?"
+        context = 'Граф — это совокупность непустого множества вершин и наборов упорядоченных или неупорядоченных пар вершин.'
+        question = 'Что такое граф?'
 
         result = engine.build_prompt(
-            "definition",
+            'definition',
             context=context,
             question=question
         )
 
         assert context in result
         assert question in result
-        assert "строгий академический ассистент" in result
-        assert "Отвечай ТОЛЬКО информацией из контекста" in result
-        assert "<definition>" in result
+        assert 'строгий академический ассистент' in result
+        assert 'Отвечай ТОЛЬКО информацией из контекста' in result
+        assert '<definition>' in result
 
     def test_build_explanation_prompt(self, temp_prompts_dir):
         """Test building explanation prompt"""
@@ -141,9 +141,9 @@ class TestPromptEngine:
         engine = PromptEngine(temp_prompts_dir)
 
         result = engine.build_prompt(
-            "definition",
-            context="Контекст",
-            question="Вопрос",
+            'definition',
+            context='Контекст',
+            question='Вопрос',
             unknown_placeholder='This placeholder is unknown'
         )
 
