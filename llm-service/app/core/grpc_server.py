@@ -67,4 +67,36 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
             )
 
     async def HealthCheck(self, request, context):
-        pass
+        try:
+            if not self.prompt_engine.templates:
+                return llm_service_pb2.HealthResponse(
+                    healthy=False,
+                    status_message='Prompt templates not loaded',
+                    modelLoaded='',
+                )
+
+            test_prompt = self.prompt_engine.build_prompt(
+                'definition',
+                context='Test context',
+                question='Test question',
+            )
+
+            if not test_prompt:
+                return llm_service_pb2.HealthResponse(
+                    healthy=False,
+                    status_message='Cannot build prompts',
+                    modelLoaded='',
+                )
+
+            return llm_service_pb2.HealthResponse(
+                healthy=True,
+                status_message='Service is healthy',
+                modelLoaded='llama3.2:3b-instruct-q4_K_M',
+            )
+
+        except Exception as e:
+            return llm_service_pb2.HealthResponse(
+                healthy=False,
+                status_message=f'Health check failed: {str(e)}',
+                modelLoaded='',
+            )
