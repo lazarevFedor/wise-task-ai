@@ -13,7 +13,9 @@ message PromptResponse{
 }
 
 message FeedbackRequest{
-	int32 mark = 1;
+	bool mark = 1;
+	string prompt = 2;
+	string response = 3;
 }
 
 message FeedbackResponse{}

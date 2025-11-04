@@ -5,13 +5,10 @@ import(
 	"go.uber.org/zap"
 )
 
-
-
 const(
 	RequestID = "request_id",
 	Key = "Logger"
 )
-
 
 var logger *zap.Logger
 
