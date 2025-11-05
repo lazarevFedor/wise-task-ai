@@ -2,11 +2,11 @@ import time
 from concurrent import futures
 from pathlib import Path
 import grpc
-from .gen import llm_service_pb2_grpc, llm_service_pb2
-from .logger import get_logger
-from .llm_client import LLMClient
-from .prompt_engine import PromptEngine
-from .query_classifier import QueryClassifier
+import llm_service_pb2_grpc, llm_service_pb2
+from logger import get_logger
+from llm_client import LLMClient
+from prompt_engine import PromptEngine
+from query_classifier import QueryClassifier
 
 logger = get_logger(__name__)
 
@@ -111,7 +111,7 @@ async def serve_grpc(host: str = 'localhost', port: int = 50051):
     """Start gRPC-server"""
     async with LLMClient() as llm_client:
         try:
-            prompts_dir = Path(__file__).parent / 'prompts'
+            prompts_dir = Path(__file__).parent.parent / 'prompts'
             logger.info(f'Loading prompts from: {prompts_dir}')
 
             prompt_engine = PromptEngine(prompts_dir)

@@ -1,6 +1,6 @@
 import asyncio
-from core.logger import get_logger
-from core.grpc_server import serve_grpc
+from logger import get_logger
+from grpc_server import serve_grpc
 
 
 logger = get_logger(__name__)

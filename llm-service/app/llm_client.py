@@ -1,8 +1,8 @@
 import aiohttp
 import asyncio
 from typing import List, Optional
-from .exceptions import LLMClientError, LLMTimeoutError, LLMUnavailableError
-from .logger import get_logger
+from exceptions import LLMClientError, LLMTimeoutError, LLMUnavailableError
+from logger import get_logger
 
 
 class LLMClient:
