@@ -1,47 +1,44 @@
 package logger
 
-import(
+import (
 	"context"
 	"go.uber.org/zap"
 )
 
-const(
-	RequestID = "request_id",
-	Key = "Logger"
+const (
+	RequestID = "request_id"
+	Key       = "Logger"
 )
 
-var logger *zap.Logger
+type data string
 
-type Logger struct{
+type Logger struct {
 	l *zap.Logger
 }
 
-func NewLogger(ctx context.Context) (*Logger, err){
+func NewLogger(ctx context.Context) (*Logger, error) {
 	logger, err := zap.NewDevelopment()
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
-	logger = &Logger{logger}
-	ctx = context.WithValue(ctx, Key, logger)
-	return logger, nil
+	ctx = context.WithValue(ctx, Key, &Logger{logger})
+	return ctx.Value(Key).(*Logger), nil
 }
 
-func GetLoggerFromCtx(ctx context.Context) *Logger{
+func GetLoggerFromCtx(ctx context.Context) *Logger {
 	return ctx.Value(Key).(*Logger)
 }
 
-func (l *Logger) Info(ctx contetx.Context, msg string, fields ...zap.Field){
-	if ctx.Value(RequestID) != nil{
-		fields = append(fields, zap.String(RequestID, ctx.Value(RequestID)))
+func (l *Logger) Info(ctx context.Context, msg string, fields ...zap.Field) {
+	if ctx.Value(RequestID) != nil {
+		fields = append(fields, zap.String(RequestID, ctx.Value(RequestID).(string)))
 	}
 	l.l.Info(msg, fields...)
 }
 
-func (l *Logger) Error(ctx context.Context, msg string, fields ...zap.Field){
-	if ctx.Value(RequestID) != nil{
-		fields = append(fields, zap.String(RequsetID, ctx.Value(RequestID)))
+func (l *Logger) Error(ctx context.Context, msg string, fields ...zap.Field) {
+	if ctx.Value(RequestID) != nil {
+		fields = append(fields, zap.String(RequestID, ctx.Value(RequestID).(string)))
 	}
-	l.l.Error(msg, fileds...)
+	l.l.Error(msg, fields...)
 }
-
-
