@@ -2,7 +2,10 @@ import pytest
 from pathlib import Path
 import tempfile
 import shutil
-from ..prompt_engine import PromptEngine
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import prompt_engine
 
 
 class TestPromptEngine:
@@ -92,7 +95,7 @@ class TestPromptEngine:
 
     def test_init_loads_correct_templates(self, temp_prompts_dir):
         """Test downloading templates from prompt engine"""
-        engine = PromptEngine(temp_prompts_dir)
+        engine = prompt_engine.PromptEngine(temp_prompts_dir)
 
         assert 'definition' in engine.templates
         assert 'explanation' in engine.templates
@@ -100,7 +103,7 @@ class TestPromptEngine:
 
     def test_build_definition_prompt(self, temp_prompts_dir):
         """Test building definition prompt"""
-        engine = PromptEngine(temp_prompts_dir)
+        engine = prompt_engine.PromptEngine(temp_prompts_dir)
 
         context = 'Граф — это совокупность непустого множества вершин и наборов упорядоченных или неупорядоченных пар вершин.'
         question = 'Что такое граф?'
@@ -119,7 +122,7 @@ class TestPromptEngine:
 
     def test_build_explanation_prompt(self, temp_prompts_dir):
         """Test building explanation prompt"""
-        engine = PromptEngine(temp_prompts_dir)
+        engine = prompt_engine.PromptEngine(temp_prompts_dir)
 
         context = 'Дерево — это связный граф без циклов.'
         question = 'Объясни, что такое дерево в теории графов'
@@ -138,7 +141,7 @@ class TestPromptEngine:
 
     def test_template_with_unknown_placeholder(self, temp_prompts_dir, caplog):
         """Test with unknown placeholder"""
-        engine = PromptEngine(temp_prompts_dir)
+        engine = prompt_engine.PromptEngine(temp_prompts_dir)
 
         result = engine.build_prompt(
             'definition',
@@ -154,7 +157,7 @@ class TestPromptEngine:
         empty_dir = tempfile.mkdtemp()
         try:
             with pytest.raises(Exception) as exc_info:
-                _ = PromptEngine(Path(empty_dir))
+                _ = prompt_engine.PromptEngine(Path(empty_dir))
             assert 'template loading failed' in str(exc_info.value).lower()
         finally:
             shutil.rmtree(empty_dir)
