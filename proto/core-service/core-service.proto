@@ -1,7 +1,6 @@
 syntax = "proto3";
 
-option go_package = "pkg";
-
+option go_package = "pkg/api";
 package api;
 
 message PromptRequest{
@@ -20,7 +19,7 @@ message FeedbackRequest{
 
 message FeedbackResponse{}
 
-service AIService{
+service CoreService{
 	rpc Prompt(PromptRequest) returns (PromptResponse);
 	rpc Feedback(FeedbackRequest) returns (FeedbackResponse);
 }
