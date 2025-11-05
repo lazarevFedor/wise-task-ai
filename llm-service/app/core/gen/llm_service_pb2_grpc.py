@@ -3,7 +3,7 @@
 import grpc
 import warnings
 
-from llm_service import llm_service_pb2 as llm__service_dot_llm__service__pb2
+from . import llm_service_pb2 as llm__service__pb2
 
 GRPC_GENERATED_VERSION = '1.76.0'
 GRPC_VERSION = grpc.__version__
@@ -18,7 +18,7 @@ except ImportError:
 if _version_not_supported:
     raise RuntimeError(
         f'The grpc package installed is at version {GRPC_VERSION},'
-        + ' but the generated code in llm_service/llm_service_pb2_grpc.py depends on'
+        + ' but the generated code in llm_service_pb2_grpc.py depends on'
         + f' grpcio>={GRPC_GENERATED_VERSION}.'
         + f' Please upgrade your grpc module to grpcio>={GRPC_GENERATED_VERSION}'
         + f' or downgrade your generated code using grpcio-tools<={GRPC_VERSION}.'
@@ -26,8 +26,7 @@ if _version_not_supported:
 
 
 class LLMServiceStub(object):
-    """Кириллу: загрузи пж в репозиторий нужный гугловские файлы как в практике было. Подправь если надо импорты и раскомментируй
-    import "google/api/annotations.proto";
+    """import "google/api/annotations.proto";
     import "google/api/openapi.proto";
 
     """
@@ -40,19 +39,18 @@ class LLMServiceStub(object):
         """
         self.Generate = channel.unary_unary(
                 '/llm.LLMService/Generate',
-                request_serializer=llm__service_dot_llm__service__pb2.GenerateRequest.SerializeToString,
-                response_deserializer=llm__service_dot_llm__service__pb2.GenerateResponse.FromString,
+                request_serializer=llm__service__pb2.GenerateRequest.SerializeToString,
+                response_deserializer=llm__service__pb2.GenerateResponse.FromString,
                 _registered_method=True)
         self.HealthCheck = channel.unary_unary(
                 '/llm.LLMService/HealthCheck',
-                request_serializer=llm__service_dot_llm__service__pb2.HealthRequest.SerializeToString,
-                response_deserializer=llm__service_dot_llm__service__pb2.HealthResponse.FromString,
+                request_serializer=llm__service__pb2.HealthRequest.SerializeToString,
+                response_deserializer=llm__service__pb2.HealthResponse.FromString,
                 _registered_method=True)
 
 
 class LLMServiceServicer(object):
-    """Кириллу: загрузи пж в репозиторий нужный гугловские файлы как в практике было. Подправь если надо импорты и раскомментируй
-    import "google/api/annotations.proto";
+    """import "google/api/annotations.proto";
     import "google/api/openapi.proto";
 
     """
@@ -76,13 +74,13 @@ def add_LLMServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'Generate': grpc.unary_unary_rpc_method_handler(
                     servicer.Generate,
-                    request_deserializer=llm__service_dot_llm__service__pb2.GenerateRequest.FromString,
-                    response_serializer=llm__service_dot_llm__service__pb2.GenerateResponse.SerializeToString,
+                    request_deserializer=llm__service__pb2.GenerateRequest.FromString,
+                    response_serializer=llm__service__pb2.GenerateResponse.SerializeToString,
             ),
             'HealthCheck': grpc.unary_unary_rpc_method_handler(
                     servicer.HealthCheck,
-                    request_deserializer=llm__service_dot_llm__service__pb2.HealthRequest.FromString,
-                    response_serializer=llm__service_dot_llm__service__pb2.HealthResponse.SerializeToString,
+                    request_deserializer=llm__service__pb2.HealthRequest.FromString,
+                    response_serializer=llm__service__pb2.HealthResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -93,8 +91,7 @@ def add_LLMServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class LLMService(object):
-    """Кириллу: загрузи пж в репозиторий нужный гугловские файлы как в практике было. Подправь если надо импорты и раскомментируй
-    import "google/api/annotations.proto";
+    """import "google/api/annotations.proto";
     import "google/api/openapi.proto";
 
     """
@@ -114,8 +111,8 @@ class LLMService(object):
             request,
             target,
             '/llm.LLMService/Generate',
-            llm__service_dot_llm__service__pb2.GenerateRequest.SerializeToString,
-            llm__service_dot_llm__service__pb2.GenerateResponse.FromString,
+            llm__service__pb2.GenerateRequest.SerializeToString,
+            llm__service__pb2.GenerateResponse.FromString,
             options,
             channel_credentials,
             insecure,
@@ -141,8 +138,8 @@ class LLMService(object):
             request,
             target,
             '/llm.LLMService/HealthCheck',
-            llm__service_dot_llm__service__pb2.HealthRequest.SerializeToString,
-            llm__service_dot_llm__service__pb2.HealthResponse.FromString,
+            llm__service__pb2.HealthRequest.SerializeToString,
+            llm__service__pb2.HealthResponse.FromString,
             options,
             channel_credentials,
             insecure,

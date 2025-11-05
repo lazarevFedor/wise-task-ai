@@ -31,11 +31,11 @@ class HealthRequest(_message.Message):
     def __init__(self) -> None: ...
 
 class HealthResponse(_message.Message):
-    __slots__ = ("healthy", "status_message", "model_loaded")
+    __slots__ = ("healthy", "status_message", "modelLoaded")
     HEALTHY_FIELD_NUMBER: _ClassVar[int]
     STATUS_MESSAGE_FIELD_NUMBER: _ClassVar[int]
-    MODEL_LOADED_FIELD_NUMBER: _ClassVar[int]
+    MODELLOADED_FIELD_NUMBER: _ClassVar[int]
     healthy: bool
     status_message: str
-    model_loaded: str
-    def __init__(self, healthy: bool = ..., status_message: _Optional[str] = ..., model_loaded: _Optional[str] = ...) -> None: ...
+    modelLoaded: str
+    def __init__(self, healthy: bool = ..., status_message: _Optional[str] = ..., modelLoaded: _Optional[str] = ...) -> None: ...
