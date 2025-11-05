@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.10
 // 	protoc        v5.29.3
-// source: ai_service.proto
+// source: core-service/core-service.proto
 
 package api
 
@@ -30,7 +30,7 @@ type PromptRequest struct {
 
 func (x *PromptRequest) Reset() {
 	*x = PromptRequest{}
-	mi := &file_ai_service_proto_msgTypes[0]
+	mi := &file_core_service_core_service_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -42,7 +42,7 @@ func (x *PromptRequest) String() string {
 func (*PromptRequest) ProtoMessage() {}
 
 func (x *PromptRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_service_proto_msgTypes[0]
+	mi := &file_core_service_core_service_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -55,7 +55,7 @@ func (x *PromptRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PromptRequest.ProtoReflect.Descriptor instead.
 func (*PromptRequest) Descriptor() ([]byte, []int) {
-	return file_ai_service_proto_rawDescGZIP(), []int{0}
+	return file_core_service_core_service_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *PromptRequest) GetText() string {
@@ -74,7 +74,7 @@ type PromptResponse struct {
 
 func (x *PromptResponse) Reset() {
 	*x = PromptResponse{}
-	mi := &file_ai_service_proto_msgTypes[1]
+	mi := &file_core_service_core_service_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -86,7 +86,7 @@ func (x *PromptResponse) String() string {
 func (*PromptResponse) ProtoMessage() {}
 
 func (x *PromptResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_service_proto_msgTypes[1]
+	mi := &file_core_service_core_service_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -99,7 +99,7 @@ func (x *PromptResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PromptResponse.ProtoReflect.Descriptor instead.
 func (*PromptResponse) Descriptor() ([]byte, []int) {
-	return file_ai_service_proto_rawDescGZIP(), []int{1}
+	return file_core_service_core_service_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *PromptResponse) GetText() string {
@@ -111,14 +111,16 @@ func (x *PromptResponse) GetText() string {
 
 type FeedbackRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Mark          int32                  `protobuf:"varint,1,opt,name=mark,proto3" json:"mark,omitempty"`
+	Mark          bool                   `protobuf:"varint,1,opt,name=mark,proto3" json:"mark,omitempty"`
+	Prompt        string                 `protobuf:"bytes,2,opt,name=prompt,proto3" json:"prompt,omitempty"`
+	Response      string                 `protobuf:"bytes,3,opt,name=response,proto3" json:"response,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *FeedbackRequest) Reset() {
 	*x = FeedbackRequest{}
-	mi := &file_ai_service_proto_msgTypes[2]
+	mi := &file_core_service_core_service_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -130,7 +132,7 @@ func (x *FeedbackRequest) String() string {
 func (*FeedbackRequest) ProtoMessage() {}
 
 func (x *FeedbackRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_service_proto_msgTypes[2]
+	mi := &file_core_service_core_service_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -143,14 +145,28 @@ func (x *FeedbackRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedbackRequest.ProtoReflect.Descriptor instead.
 func (*FeedbackRequest) Descriptor() ([]byte, []int) {
-	return file_ai_service_proto_rawDescGZIP(), []int{2}
+	return file_core_service_core_service_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *FeedbackRequest) GetMark() int32 {
+func (x *FeedbackRequest) GetMark() bool {
 	if x != nil {
 		return x.Mark
 	}
-	return 0
+	return false
+}
+
+func (x *FeedbackRequest) GetPrompt() string {
+	if x != nil {
+		return x.Prompt
+	}
+	return ""
+}
+
+func (x *FeedbackRequest) GetResponse() string {
+	if x != nil {
+		return x.Response
+	}
+	return ""
 }
 
 type FeedbackResponse struct {
@@ -161,7 +177,7 @@ type FeedbackResponse struct {
 
 func (x *FeedbackResponse) Reset() {
 	*x = FeedbackResponse{}
-	mi := &file_ai_service_proto_msgTypes[3]
+	mi := &file_core_service_core_service_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -173,7 +189,7 @@ func (x *FeedbackResponse) String() string {
 func (*FeedbackResponse) ProtoMessage() {}
 
 func (x *FeedbackResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_ai_service_proto_msgTypes[3]
+	mi := &file_core_service_core_service_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -186,49 +202,51 @@ func (x *FeedbackResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FeedbackResponse.ProtoReflect.Descriptor instead.
 func (*FeedbackResponse) Descriptor() ([]byte, []int) {
-	return file_ai_service_proto_rawDescGZIP(), []int{3}
+	return file_core_service_core_service_proto_rawDescGZIP(), []int{3}
 }
 
-var File_ai_service_proto protoreflect.FileDescriptor
+var File_core_service_core_service_proto protoreflect.FileDescriptor
 
-const file_ai_service_proto_rawDesc = "" +
+const file_core_service_core_service_proto_rawDesc = "" +
 	"\n" +
-	"\x10ai_service.proto\x12\x03api\"#\n" +
+	"\x1fcore-service/core-service.proto\x12\x03api\"#\n" +
 	"\rPromptRequest\x12\x12\n" +
 	"\x04text\x18\x01 \x01(\tR\x04text\"$\n" +
 	"\x0ePromptResponse\x12\x12\n" +
-	"\x04text\x18\x01 \x01(\tR\x04text\"%\n" +
+	"\x04text\x18\x01 \x01(\tR\x04text\"Y\n" +
 	"\x0fFeedbackRequest\x12\x12\n" +
-	"\x04mark\x18\x01 \x01(\x05R\x04mark\"\x12\n" +
-	"\x10FeedbackResponse2w\n" +
-	"\tAIService\x121\n" +
+	"\x04mark\x18\x01 \x01(\bR\x04mark\x12\x16\n" +
+	"\x06prompt\x18\x02 \x01(\tR\x06prompt\x12\x1a\n" +
+	"\bresponse\x18\x03 \x01(\tR\bresponse\"\x12\n" +
+	"\x10FeedbackResponse2y\n" +
+	"\vCoreService\x121\n" +
 	"\x06Prompt\x12\x12.api.PromptRequest\x1a\x13.api.PromptResponse\x127\n" +
 	"\bFeedback\x12\x14.api.FeedbackRequest\x1a\x15.api.FeedbackResponseB\tZ\apkg/apib\x06proto3"
 
 var (
-	file_ai_service_proto_rawDescOnce sync.Once
-	file_ai_service_proto_rawDescData []byte
+	file_core_service_core_service_proto_rawDescOnce sync.Once
+	file_core_service_core_service_proto_rawDescData []byte
 )
 
-func file_ai_service_proto_rawDescGZIP() []byte {
-	file_ai_service_proto_rawDescOnce.Do(func() {
-		file_ai_service_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_ai_service_proto_rawDesc), len(file_ai_service_proto_rawDesc)))
+func file_core_service_core_service_proto_rawDescGZIP() []byte {
+	file_core_service_core_service_proto_rawDescOnce.Do(func() {
+		file_core_service_core_service_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_core_service_core_service_proto_rawDesc), len(file_core_service_core_service_proto_rawDesc)))
 	})
-	return file_ai_service_proto_rawDescData
+	return file_core_service_core_service_proto_rawDescData
 }
 
-var file_ai_service_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
-var file_ai_service_proto_goTypes = []any{
+var file_core_service_core_service_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_core_service_core_service_proto_goTypes = []any{
 	(*PromptRequest)(nil),    // 0: api.PromptRequest
 	(*PromptResponse)(nil),   // 1: api.PromptResponse
 	(*FeedbackRequest)(nil),  // 2: api.FeedbackRequest
 	(*FeedbackResponse)(nil), // 3: api.FeedbackResponse
 }
-var file_ai_service_proto_depIdxs = []int32{
-	0, // 0: api.AIService.Prompt:input_type -> api.PromptRequest
-	2, // 1: api.AIService.Feedback:input_type -> api.FeedbackRequest
-	1, // 2: api.AIService.Prompt:output_type -> api.PromptResponse
-	3, // 3: api.AIService.Feedback:output_type -> api.FeedbackResponse
+var file_core_service_core_service_proto_depIdxs = []int32{
+	0, // 0: api.CoreService.Prompt:input_type -> api.PromptRequest
+	2, // 1: api.CoreService.Feedback:input_type -> api.FeedbackRequest
+	1, // 2: api.CoreService.Prompt:output_type -> api.PromptResponse
+	3, // 3: api.CoreService.Feedback:output_type -> api.FeedbackResponse
 	2, // [2:4] is the sub-list for method output_type
 	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -236,26 +254,26 @@ var file_ai_service_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_ai_service_proto_init() }
-func file_ai_service_proto_init() {
-	if File_ai_service_proto != nil {
+func init() { file_core_service_core_service_proto_init() }
+func file_core_service_core_service_proto_init() {
+	if File_core_service_core_service_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_ai_service_proto_rawDesc), len(file_ai_service_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_core_service_core_service_proto_rawDesc), len(file_core_service_core_service_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_ai_service_proto_goTypes,
-		DependencyIndexes: file_ai_service_proto_depIdxs,
-		MessageInfos:      file_ai_service_proto_msgTypes,
+		GoTypes:           file_core_service_core_service_proto_goTypes,
+		DependencyIndexes: file_core_service_core_service_proto_depIdxs,
+		MessageInfos:      file_core_service_core_service_proto_msgTypes,
 	}.Build()
-	File_ai_service_proto = out.File
-	file_ai_service_proto_goTypes = nil
-	file_ai_service_proto_depIdxs = nil
+	File_core_service_core_service_proto = out.File
+	file_core_service_core_service_proto_goTypes = nil
+	file_core_service_core_service_proto_depIdxs = nil
 }
