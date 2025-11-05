@@ -1,19 +1,24 @@
 import time
-from gen.llm_service import llm_service_pb2_grpc, llm_service_pb2
+from concurrent import futures
+from pathlib import Path
+import grpc
+from .gen import llm_service_pb2_grpc, llm_service_pb2
 from .logger import get_logger
 from .llm_client import LLMClient
 from .prompt_engine import PromptEngine
 from .query_classifier import QueryClassifier
 
+logger = get_logger(__name__)
+
 
 class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
     def __init__(self, llm_client: LLMClient, prompt_engine: PromptEngine):
-        self.logger = get_logger(__name__)
+        self.logger = logger
         self.llm_client = llm_client
         self.prompt_engine = prompt_engine
         self.query_classifier = QueryClassifier()
 
-        self.logger.info("LLMServiceServicer initialized")
+        self.logger.info('LLMServiceServicer initialized')
 
     async def Generate(self, request, context):
         start_time = time.time()
@@ -25,7 +30,7 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
             )
 
             template_type = self.query_classifier.classify(request.question)
-            context_text = "\n".join(request.contexts) if request.contexts else ""
+            context_text = '\n'.join(request.contexts) if request.contexts else ''
             self.logger.debug(
                 f'Template type: {template_type}'
             )
@@ -100,3 +105,39 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
                 status_message=f'Health check failed: {str(e)}',
                 modelLoaded='',
             )
+
+
+async def serve_grpc(host: str = 'localhost', port: int = 50051):
+    """Start gRPC-server"""
+    async with LLMClient() as llm_client:
+        try:
+            prompts_dir = Path(__file__).parent / 'prompts'
+            logger.info(f'Loading prompts from: {prompts_dir}')
+
+            prompt_engine = PromptEngine(prompts_dir)
+
+            await llm_client.initialize()
+            logger.info('LLM client initialized successfully')
+
+            server = grpc.aio.server(
+                futures.ThreadPoolExecutor(max_workers=10),
+                options=[
+                    ('grpc.max_send_message_length', 50 * 1024 * 1024),
+                    ('grpc.max_receive_message_length', 50 * 1024 * 1024),
+                ]
+            )
+
+            servicer = LLMServiceServicer(llm_client, prompt_engine)
+            llm_service_pb2_grpc.add_LLMServiceServicer_to_server(servicer, server)
+
+            listen_addr = f'{host}:{port}'
+            server.add_insecure_port(listen_addr)
+
+            logger.info(f'Starting gRPC server on {listen_addr}')
+            await server.start()
+
+            return server
+
+        except Exception as e:
+            logger.error(f'Failed to start gRPC server: {e}')
+            raise
