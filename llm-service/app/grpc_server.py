@@ -2,7 +2,7 @@ import time
 from concurrent import futures
 from pathlib import Path
 import grpc
-import llm_service_pb2_grpc, llm_service_pb2
+import llm_service.llm_service_pb2_grpc as llm_service_pb2_grpc, llm_service.llm_service_pb2 as llm_service_pb2
 from logger import get_logger
 from llm_client import LLMClient
 from prompt_engine import PromptEngine
