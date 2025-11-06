@@ -1,0 +1,14 @@
+services:
+  # llm-server:
+  # llm:
+  # llm-db:
+  core_server:
+    build:
+      context: ..
+      dockerfile: server/cmd/Dockerfile
+    ports: 
+      - "8080:8080"
+    
+
+  # feedback-db:
+  
