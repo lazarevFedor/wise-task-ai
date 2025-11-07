@@ -2,6 +2,8 @@ package logger
 
 import (
 	"context"
+	"fmt"
+
 	"go.uber.org/zap"
 )
 
@@ -10,8 +12,6 @@ const (
 	Key       = "Logger"
 )
 
-type data string
-
 type Logger struct {
 	l *zap.Logger
 }
@@ -19,7 +19,7 @@ type Logger struct {
 func NewLogger(ctx context.Context) (*Logger, error) {
 	logger, err := zap.NewDevelopment()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("NewLogger: %w", err)
 	}
 	ctx = context.WithValue(ctx, Key, &Logger{logger})
 	return ctx.Value(Key).(*Logger), nil
