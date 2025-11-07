@@ -1,7 +1,14 @@
 services:
-  # llm-server:
+  llm-server:
+    build:
+      context: ..
+      dockerfile: llm-service/Dockerfile
+    ports: 
+      - "8081:8081"
+
   # llm:
   # llm-db:
+  
   core_server:
     build:
       context: ..
