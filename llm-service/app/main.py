@@ -7,7 +7,7 @@ logger = get_logger(__name__)
 
 
 async def run_server():
-    """Запуск сервера"""
+    """Start the server"""
 
     server = None
     try:
@@ -30,7 +30,7 @@ async def run_server():
 
 
 def main():
-    """Основная функция"""
+    """Main function"""
     try:
         asyncio.run(run_server())
     except KeyboardInterrupt:
@@ -39,5 +39,5 @@ def main():
         logger.error(f'Fatal error: {str(e)}')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

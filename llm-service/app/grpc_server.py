@@ -2,7 +2,8 @@ import time
 from concurrent import futures
 from pathlib import Path
 import grpc
-import llm_service.llm_service_pb2_grpc as llm_service_pb2_grpc, llm_service.llm_service_pb2 as llm_service_pb2
+import llm_service.llm_service_pb2_grpc as llm_service_pb2_grpc
+import llm_service.llm_service_pb2 as llm_service_pb2
 from logger import get_logger
 from llm_client import LLMClient
 from prompt_engine import PromptEngine
@@ -30,7 +31,11 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
             )
 
             template_type = self.query_classifier.classify(request.question)
-            context_text = '\n'.join(request.contexts) if request.contexts else ''
+            if request.contexts:
+                context_text = '\n'.join(request.contexts)
+            else:
+                context_text = ''
+
             self.logger.debug(
                 f'Template type: {template_type}'
             )
@@ -42,7 +47,7 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
             )
 
             self.logger.debug(
-                f'Sending prompt to LLM...'
+                'Sending prompt to LLM...'
             )
             answer = await self.llm_client.generate(prompt=prompt)
             processing_time = time.time() - start_time
@@ -58,7 +63,6 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
                 errorMessage='',
                 success=True,
             )
-
 
         except Exception as e:
             processing_time = time.time() - start_time

@@ -30,7 +30,8 @@ class PromptEngine:
                 template_name = template_file.stem
                 with open(template_file, 'r', encoding='utf8') as f:
                     self.templates[template_name] = f.read().strip()
-                self.logger.info(f'PromptEngine: template {template_name} loaded')
+                self.logger.info(f'PromptEngine: '
+                                 f'template {template_name} loaded')
         except Exception as e:
             self.logger.critical(f'PromptEngine: template loading failed: {e}')
             raise Exception('PromptEngine: template loading failed') from e
@@ -49,6 +50,6 @@ class PromptEngine:
             if placeholder in template:
                 template = template.replace(placeholder, str(value))
             else:
-                self.logger.warning(f'PromptEngine: placeholder {placeholder} not found')
-
+                self.logger.warning(f'PromptEngine: '
+                                    f'placeholder {placeholder} not found')
         return template

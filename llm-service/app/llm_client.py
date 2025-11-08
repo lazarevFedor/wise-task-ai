@@ -12,7 +12,9 @@ class LLMClient:
     using Ollama LLM and returns the response.
     """
 
-    def __init__(self, ollama_urls: List[str] = None, max_concurrent_requests: int = 3, request_timeout: float = 60.0):
+    def __init__(self, ollama_urls: List[str] = None,
+                 max_concurrent_requests: int = 3,
+                 request_timeout: float = 60.0):
         """Initializes LLMClient"""
         self.logger = get_logger(__name__)
 
@@ -36,8 +38,8 @@ class LLMClient:
         self._lock = asyncio.Lock()
         self._request_counter = 0
         self._error_counter = 0
-        self.logger.info('Initializing LLMClient: client created. List of Ollama URLs: %s', str(self.ollama_urls))
-
+        self.logger.info('Initializing LLMClient: client created. '
+                         'List of Ollama URLs: %s', str(self.ollama_urls))
 
     async def initialize(self):
         """Initializes the client session."""
@@ -64,7 +66,7 @@ class LLMClient:
             )
 
         data = {
-            'model': model or "llama3.2:3b-instruct-q4_K_M",
+            'model': model or 'llama3.2:3b-instruct-q4_K_M',
             'prompt': prompt,
             'stream': False,
         }
@@ -80,14 +82,17 @@ class LLMClient:
                     else:
                         error_description = await response.text()
                         self._error_counter += 1
-                        self.logger.error(f'LLMClient: Got error: {error_description}, error code: {response.status}')
+                        self.logger.error(f'LLMClient: Got error: {error_description}, '
+                                          f'error code: {response.status}')
                         raise LLMUnavailableError(
                             url=url,
-                            error_description=f'HTTP {response.status}: {error_description}',
+                            error_description=f'HTTP {response.status}: '
+                                              f'{error_description}',
                         )
         except asyncio.TimeoutError:
             self._error_counter += 1
-            self.logger.warning(f'LLMClient: Got error: {asyncio.TimeoutError}, timeout: {self.request_timeout}')
+            self.logger.warning(f'LLMClient: Got error: {asyncio.TimeoutError}, '
+                                f'timeout: {self.request_timeout}')
             raise LLMTimeoutError('generate', self.request_timeout)
         except aiohttp.ClientConnectorError as e:
             self._error_counter += 1

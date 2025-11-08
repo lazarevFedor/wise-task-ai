@@ -8,7 +8,8 @@ class LLMTimeoutError(LLMClientError):
     def __init__(self, operation: str, timeout_seconds: float):
         self.operation = operation
         self.timeout_seconds = timeout_seconds
-        super().__init__(f'Operation {operation} timed out after {timeout_seconds} seconds.')
+        super().__init__(f'Operation {operation} timed out after '
+                         f'{timeout_seconds} seconds.')
 
 
 class LLMUnavailableError(LLMClientError):
@@ -16,4 +17,5 @@ class LLMUnavailableError(LLMClientError):
     def __init__(self, url: str, error_description: str):
         self.url = url
         self.error_description = error_description
-        super().__init__(f'Operation {url} unavailable at {error_description}.')
+        super().__init__(f'Operation {url} unavailable '
+                         f'at {error_description}.')

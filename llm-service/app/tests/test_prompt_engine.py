@@ -87,8 +87,10 @@ class TestPromptEngine:
     </response_structure>
 </prompt>"""
 
-        (prompts_dir / 'definition.xml').write_text(definition_template, encoding='utf-8')
-        (prompts_dir / 'explanation.xml').write_text(explanation_template, encoding='utf-8')
+        (prompts_dir / 'definition.xml').write_text(definition_template,
+                                                    encoding='utf-8')
+        (prompts_dir / 'explanation.xml').write_text(explanation_template,
+                                                     encoding='utf-8')
 
         yield prompts_dir
         shutil.rmtree(temp_dir)
@@ -105,7 +107,8 @@ class TestPromptEngine:
         """Test building definition prompt"""
         engine = prompt_engine.PromptEngine(temp_prompts_dir)
 
-        context = 'Граф — это совокупность непустого множества вершин и наборов упорядоченных или неупорядоченных пар вершин.'
+        context = ('Граф — это совокупность непустого множества вершин и '
+                   'наборов упорядоченных или неупорядоченных пар вершин.')
         question = 'Что такое граф?'
 
         result = engine.build_prompt(
