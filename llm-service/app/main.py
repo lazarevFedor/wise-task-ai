@@ -7,13 +7,18 @@ logger = get_logger(__name__)
 
 
 async def run_server():
-    """Start the server"""
+    """
+    Start the server.
 
+    Initializes and starts the gRPC server using serve_grpc(),
+    logs status messages, waits indefinitely for incoming requests,
+    handles shutdown signals, and gracefully stops the server.
+    """
     server = None
     try:
         logger.info('Starting LLM gRPC Server...')
         server = await serve_grpc()
-        logger.info('LLM gRPC Server is running on localhost:50051')
+        logger.info('LLM gRPC Server is running on localhost:8081')
         logger.info('Press Ctrl+C to stop the server...')
         await asyncio.Future()
 
@@ -30,11 +35,16 @@ async def run_server():
 
 
 def main():
-    """Main function"""
+    """
+    Main function.
+
+    Runs the asynchronous server startup routine using asyncio.run(),
+    and handles top-level exceptions or user interruptions.
+    """
     try:
         asyncio.run(run_server())
     except KeyboardInterrupt:
-        print('\nServer stopped by user')
+        logger.info('Server stopped gracefully')
     except Exception as e:
         logger.error(f'Fatal error: {str(e)}')
 

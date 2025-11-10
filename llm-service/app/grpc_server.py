@@ -13,7 +13,21 @@ logger = get_logger(__name__)
 
 
 class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
+    """
+    gRPC servicer implementation for the LLM Service.
+
+    Handles incoming requests for generating responses using the LLM
+    and performing health checks on the service.
+    """
+
     def __init__(self, llm_client: LLMClient, prompt_engine: PromptEngine):
+        """
+        Initialize the LLMServiceServicer.
+
+        Args:
+            llm_client (LLMClient): The LLM client instance for generating responses.
+            prompt_engine (PromptEngine): The prompt engine for building prompts.
+        """
         self.logger = logger
         self.llm_client = llm_client
         self.prompt_engine = prompt_engine
@@ -22,6 +36,20 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
         self.logger.info('LLMServiceServicer initialized')
 
     async def Generate(self, request, context):
+        """
+        Generate a response to the user's question using the LLM.
+
+        Classifies the query type, builds a prompt with provided contexts,
+        generates the answer, and returns a response with processing time.
+
+        Args:
+            request: The gRPC GenerateRequest containing the question and contexts.
+            context: The gRPC servicer context.
+
+        Returns:
+            llm_service_pb2.GenerateResponse:
+            The response with answer, processing time, and success status.
+        """
         start_time = time.time()
 
         try:
@@ -76,6 +104,18 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
             )
 
     async def HealthCheck(self, request, context):
+        """
+        Perform a health check on the LLM service.
+
+        Verifies if prompt templates are loaded and if prompts can be built.
+
+        Args:
+            request: The gRPC HealthCheckRequest.
+            context: The gRPC servicer context.
+
+        Returns:
+            llm_service_pb2.HealthResponse: The health status response.
+        """
         try:
             if not self.prompt_engine.templates:
                 return llm_service_pb2.HealthResponse(
@@ -111,8 +151,23 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
             )
 
 
-async def serve_grpc(host: str = 'localhost', port: int = 50051):
-    """Start gRPC-server"""
+async def serve_grpc(host: str = 'localhost', port: int = 8081):
+    """
+    Start gRPC-server.
+
+    Initializes the LLMClient and PromptEngine, sets up the gRPC server
+    with the LLMServiceServicer, and starts listening on the specified host and port.
+
+    Args:
+        host (str, optional): The host to bind the server to. Defaults to 'localhost'.
+        port (int, optional): The port to bind the server to. Defaults to 8081.
+
+    Returns:
+        grpc.aio.Server: The started gRPC server instance.
+
+    Raises:
+        Exception: If server startup fails.
+    """
     async with LLMClient() as llm_client:
         try:
             prompts_dir = Path(__file__).parent.parent / 'prompts'
@@ -145,3 +200,4 @@ async def serve_grpc(host: str = 'localhost', port: int = 50051):
         except Exception as e:
             logger.error(f'Failed to start gRPC server: {e}')
             raise
+    return None
