@@ -2,3 +2,4 @@ llm-service/venv/
 **/.DS_Store
 .idea
 *.env
+.vscode
