@@ -1,3 +1,4 @@
+// Package logger contains logger configuration
 package logger
 
 import (
@@ -16,13 +17,14 @@ type Logger struct {
 	l *zap.Logger
 }
 
-func NewLogger(ctx context.Context) (*Logger, error) {
+func NewLoggerContext(ctx context.Context) (context.Context, error) {
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		return nil, fmt.Errorf("NewLogger: %w", err)
 	}
+
 	ctx = context.WithValue(ctx, Key, &Logger{logger})
-	return ctx.Value(Key).(*Logger), nil
+	return ctx, nil
 }
 
 func GetLoggerFromCtx(ctx context.Context) *Logger {
