@@ -11,8 +11,7 @@ FROM debian:bookworm-slim
 WORKDIR /app
 
 COPY --from=builder /app/core ./
-
-# TODO: smth with db
+COPY ../db_data /app/db_data
 
 RUN ls
 
