@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option go_package = "api/core";
+package api;
+
+message PromptRequest{
+	string text = 1;
+}
+
+message PromptResponse{
+	string text = 1;
+}
+
+message FeedbackRequest{
+	bool mark = 1;
+	string prompt = 2;
+	string response = 3;
+}
+
+message FeedbackResponse{}
+
+service CoreService{
+	rpc Prompt(PromptRequest) returns (PromptResponse);
+	rpc Feedback(FeedbackRequest) returns (FeedbackResponse);
+}
