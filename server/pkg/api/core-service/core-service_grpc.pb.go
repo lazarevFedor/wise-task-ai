@@ -4,7 +4,7 @@
 // - protoc             v5.29.3
 // source: core-service/core-service.proto
 
-package api
+package core
 
 import (
 	context "context"

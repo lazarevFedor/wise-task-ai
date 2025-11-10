@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-option go_package = "pkg/api";
+option go_package = "api/llm";
 package llm;
 
-import "google/api/annotations.proto";
-import "google/api/openapi.proto";
+// import "google/api/annotations.proto";
+// import "google/api/openapi.proto";
 
-service LLMService {
+service llmService {
   rpc Generate(GenerateRequest) returns (GenerateResponse);  // Запрос на генерацию
   rpc HealthCheck(HealthRequest) returns (HealthResponse);  // Проверка здоров ли сервак с моделью
 }
@@ -20,12 +20,9 @@ message GenerateResponse {
   string answer = 1;
   double processingTime = 2;  // Время которое заняла генерация. Можно выдать в конце ответа пользователю.
   string errorMessage = 3;  // Если ошибка во время генерации -- не пусто
-  bool success = 4; // Сгенерилось или нет
 }
 
-message HealthRequest {
-
-}
+message HealthRequest {}
 
 message HealthResponse {
   bool healthy = 1;

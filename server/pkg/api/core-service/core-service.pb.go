@@ -4,7 +4,7 @@
 // 	protoc        v5.29.3
 // source: core-service/core-service.proto
 
-package api
+package core
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -221,7 +221,8 @@ const file_core_service_core_service_proto_rawDesc = "" +
 	"\x10FeedbackResponse2y\n" +
 	"\vCoreService\x121\n" +
 	"\x06Prompt\x12\x12.api.PromptRequest\x1a\x13.api.PromptResponse\x127\n" +
-	"\bFeedback\x12\x14.api.FeedbackRequest\x1a\x15.api.FeedbackResponseB\tZ\apkg/apib\x06proto3"
+	"\bFeedback\x12\x14.api.FeedbackRequest\x1a\x15.api.FeedbackResponseB\n" +
+	"Z\bapi/coreb\x06proto3"
 
 var (
 	file_core_service_core_service_proto_rawDescOnce sync.Once
