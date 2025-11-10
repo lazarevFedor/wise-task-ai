@@ -100,7 +100,6 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
                 answer='',
                 processingTime=processing_time,
                 errorMessage=error_message,
-                success=False,
             )
 
     async def HealthCheck(self, request, context):

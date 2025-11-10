@@ -20,7 +20,6 @@ message GenerateResponse {
   string answer = 1;
   double processingTime = 2;  // Время которое заняла генерация. Можно выдать в конце ответа пользователю.
   string errorMessage = 3;  // Если ошибка во время генерации -- не пусто
-  bool success = 4; // Сгенерилось или нет
 }
 
 message HealthRequest {

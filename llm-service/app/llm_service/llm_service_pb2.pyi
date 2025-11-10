@@ -15,16 +15,14 @@ class GenerateRequest(_message.Message):
     def __init__(self, question: _Optional[str] = ..., contexts: _Optional[_Iterable[str]] = ...) -> None: ...
 
 class GenerateResponse(_message.Message):
-    __slots__ = ("answer", "processingTime", "errorMessage", "success")
+    __slots__ = ("answer", "processingTime", "errorMessage")
     ANSWER_FIELD_NUMBER: _ClassVar[int]
     PROCESSINGTIME_FIELD_NUMBER: _ClassVar[int]
     ERRORMESSAGE_FIELD_NUMBER: _ClassVar[int]
-    SUCCESS_FIELD_NUMBER: _ClassVar[int]
     answer: str
     processingTime: float
     errorMessage: str
-    success: bool
-    def __init__(self, answer: _Optional[str] = ..., processingTime: _Optional[float] = ..., errorMessage: _Optional[str] = ..., success: bool = ...) -> None: ...
+    def __init__(self, answer: _Optional[str] = ..., processingTime: _Optional[float] = ..., errorMessage: _Optional[str] = ...) -> None: ...
 
 class HealthRequest(_message.Message):
     __slots__ = ()
