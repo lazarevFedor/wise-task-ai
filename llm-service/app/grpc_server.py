@@ -8,6 +8,7 @@ from logger import get_logger
 from llm_client import LLMClient
 from prompt_engine import PromptEngine
 from query_classifier import QueryClassifier
+from config import config
 
 logger = get_logger(__name__)
 
@@ -89,7 +90,6 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
                 answer=answer,
                 processingTime=processing_time,
                 errorMessage='',
-                success=True,
             )
 
         except Exception as e:
@@ -167,6 +167,8 @@ async def serve_grpc(host: str = 'localhost', port: int = 8081):
     Raises:
         Exception: If server startup fails.
     """
+    host = host or config.LLM_GRPC_HOST
+    port = port or config.LLM_GRPC_PORT
     async with LLMClient() as llm_client:
         try:
             prompts_dir = Path(__file__).parent.parent / 'prompts'
@@ -191,7 +193,7 @@ async def serve_grpc(host: str = 'localhost', port: int = 8081):
             listen_addr = f'{host}:{port}'
             server.add_insecure_port(listen_addr)
 
-            logger.info(f'Starting gRPC server on {listen_addr}')
+            logger.info(f'Starting gRPC server on http://{listen_addr}')
             await server.start()
 
             return server

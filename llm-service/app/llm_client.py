@@ -1,8 +1,9 @@
 import aiohttp
 import asyncio
-from typing import List, Optional
+from typing import Optional
 from exceptions import LLMClientError, LLMTimeoutError, LLMUnavailableError
 from logger import get_logger
+from config import config
 
 
 class LLMClient:
@@ -12,37 +13,34 @@ class LLMClient:
     generates an answer using Ollama LLM and returns the response.
     """
 
-    def __init__(self, ollama_urls: List[str] = None,
-                 max_concurrent_requests: int = 3,
-                 request_timeout: float = 60.0):
+    def __init__(self):
         """
         Initializes LLMClient.
 
-        Args:
-            ollama_urls (List[str], optional):
-            List of Ollama server URLs. Defaults to ['http://localhost:11434'].
-            max_concurrent_requests (int, optional):
-            Maximum number of concurrent requests. Defaults to 3.
-            request_timeout (float, optional):
-            Request timeout in seconds. Defaults to 60.0.
+        ollama_urls:
+        List of Ollama server URLs. Defaults to ['http://localhost:11434'].
+        max_concurrent_requests:
+        Maximum number of concurrent requests. Defaults to 3.
+        request_timeout:
+        Request timeout in seconds. Defaults to 120.0.
         """
         self.logger = get_logger(__name__)
 
         self.logger.info(
             'Initializing LLMClient: max_concurrent_requests = %d',
-            max_concurrent_requests
+            config.LLM_MAX_CONCURRENT_REQUESTS
         )
 
-        if ollama_urls is None:
+        if config.LLM_OLLAMA_URLS is None:
             self.ollama_urls = ['http://localhost:11434']
         else:
-            if not ollama_urls:
+            if not config.LLM_OLLAMA_URLS:
                 raise ValueError('No ollama urls provided')
-            self.ollama_urls = ollama_urls
+            self.ollama_urls = config.LLM_OLLAMA_URLS
 
-        self.max_concurrent_requests = max_concurrent_requests
-        self.semaphore = asyncio.Semaphore(max_concurrent_requests)
-        self.request_timeout = request_timeout
+        self.max_concurrent_requests = config.LLM_MAX_CONCURRENT_REQUESTS
+        self.semaphore = asyncio.Semaphore(config.LLM_MAX_CONCURRENT_REQUESTS)
+        self.request_timeout = config.LLM_REQUEST_TIMEOUT
         self.session: Optional[aiohttp.ClientSession] = None
         self.current_url_index = 0
         self._lock = asyncio.Lock()
@@ -100,6 +98,9 @@ class LLMClient:
             LLMClientError:
             For other unknown errors.
         """
+        if model is None:
+            model = config.LLM_DEFAULT_MODEL
+
         base_url = await self._get_next_url()
         url = f'{base_url}/api/generate'
 
@@ -110,7 +111,7 @@ class LLMClient:
             )
 
         data = {
-            'model': model or 'llama3.2:3b-instruct-q4_K_M',
+            'model': model,
             'prompt': prompt,
             'stream': False,
         }

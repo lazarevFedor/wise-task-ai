@@ -18,7 +18,6 @@ async def run_server():
     try:
         logger.info('Starting LLM gRPC Server...')
         server = await serve_grpc()
-        logger.info('LLM gRPC Server is running on localhost:8081')
         logger.info('Press Ctrl+C to stop the server...')
         await asyncio.Future()
 
