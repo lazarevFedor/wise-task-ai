@@ -8,8 +8,13 @@ class PromptEngine:
     """
 
     def __init__(self, prompts_dir):
-        """Initialize PromptEngine:
-        initialize templates dict and load prompt templates"""
+        """
+        Initialize PromptEngine:
+        initialize templates dict and load prompt templates.
+
+        Args:
+            prompts_dir: The directory path containing prompt template XML files.
+        """
         self.logger = get_logger(__name__)
         self.prompts_dir = prompts_dir  # later catch None val
         self.templates = {}
@@ -18,8 +23,15 @@ class PromptEngine:
         self.logger.info('PromptEngine: prompt engine initialized')
 
     def _load_templates(self):
-        """Load prompt templates
-        and add them into dictionary."""
+        """
+        Load prompt templates and add them into dictionary.
+
+        Scans the prompts_dir recursively for *.xml files, reads their contents,
+        and stores them in self.templates with the file stem as the key.
+
+        Raises:
+            Exception: If no template files are found or loading fails.
+        """
         try:
             template_files = list(self.prompts_dir.rglob('*.xml'))
             if not template_files:
@@ -37,8 +49,24 @@ class PromptEngine:
             raise Exception('PromptEngine: template loading failed') from e
 
     def build_prompt(self, template_name, **placeholders):
-        """Build prompt template with placeholders
-        -- user question and relevant contexts"""
+        """
+        Build prompt template with placeholders
+        -- user question and relevant contexts.
+
+        Replaces placeholders in the specified template with provided values.
+
+        Args:
+            template_name (str):
+            The name of the template to use (must match a loaded template key).
+            **placeholders: Keyword arguments where keys are placeholder names
+            and values are replacements.
+
+        Returns:
+            str: The built prompt with placeholders replaced.
+
+        Raises:
+            Exception: If no templates are loaded.
+        """
         if self.templates is None:
             self.logger.critical('PromptEngine: no templates loaded')
             raise Exception('PromptEngine: no templates loaded')

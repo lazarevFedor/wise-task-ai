@@ -7,11 +7,27 @@ class QueryClassifier:
     """Classifier for query type detection"""
 
     def __init__(self):
+        """
+        Initialize the QueryClassifier.
+
+        Sets up the logger for the classifier.
+        """
         self.logger = get_logger(__name__)
 
     def classify(self, question: str) -> Literal["definition", "explanation"]:
-        """Detects query type"""
+        """
+        Detects query type based on predefined patterns in the question.
 
+        Analyzes the input question using regular expression patterns to determine
+        if it is seeking a 'definition' or an 'explanation'. Defaults to 'explanation'
+        if no patterns match.
+
+        Args:
+            question (str): The input question to classify.
+
+        Returns:
+            Literal["definition", "explanation"]: The detected query type.
+        """
         question_lower = question.lower().strip()
         self.logger.debug(f'Classifying question: "{question}"')
 
