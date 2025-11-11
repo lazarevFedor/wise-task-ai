@@ -3,3 +3,4 @@ llm-service/venv/
 .idea
 *.env
 .vscode
+db_data

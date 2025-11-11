@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
 
 	"github.com/lazarevFedor/wise-task-ai/server/internal/config"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/coreserver"
@@ -14,10 +15,16 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/reflection"
+	// "google.golang.org/grpc/reflection"
+)
+
+const (
+	llmHost = "llm-service"
+	llmPort = "8081"
 )
 
 func main() {
+	// Logger
 	ctx := context.Background()
 	ctx, err := logger.NewLoggerContext(ctx)
 	log := logger.GetLoggerFromCtx(ctx)
@@ -26,33 +33,61 @@ func main() {
 		return
 	}
 
-	log.Info(ctx, "first log in main")
-
+	// Config
 	cfg, err := config.NewCoreServerConfig()
 	if err != nil {
 		log.Error(ctx, "failed to load core configuration", zap.Error(err))
 		return
 	}
-	//TODO: Заполнить реальные контейнер и порт
-	container, port := "localhost", "0000"
-	clientConn, err := grpc.NewClient(fmt.Sprintf("%s:%s", container, port),
-		grpc.WithTransportCredentials(insecure.NewCredentials()))
 
+	// DB Connections
+	dbClients := &db.Clients{}
+
+	pgClient, err := db.NewPostgres(ctx, cfg.Postgres)
+	if err != nil {
+		log.Error(ctx, "failed to connect to Postgres", zap.Error(err))
+		return
+	}
+	defer pgClient.Close()
+	dbClients.Postgres = pgClient
+
+	qdrantClient, err := db.NewQdrant(ctx, cfg.Qdrant)
+	if err != nil {
+		log.Error(ctx, "failed to create qdrant client", zap.Error(err))
+		return
+	}
+	defer qdrantClient.Close()
+	dbClients.Qdrant = qdrantClient
+
+	// gRPC
+	llmConnURL := fmt.Sprintf("%s:%s", llmHost, llmPort)
+	conn, err := grpc.NewClient(llmConnURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Error(ctx, "failed to connect to LLM Service", zap.Error(err))
 		return
 	}
+	defer conn.Close()
 
-	client := llm.NewLlmServiceClient(clientConn)
+	llmClient := llm.NewLlmServiceClient(conn)
 
-	server2LLM, err := coreserver.NewServer(ctx, client, cfg)
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", cfg.RestPort))
+	if err != nil {
+		log.Error(ctx, "failed to start core-server listening", zap.Error(err))
+		return
+	}
 
-	//TODO: add arguments to grpcc.NewServer func
+	//TODO: add arguments to grpc.NewServer func
 	server := grpc.NewServer()
+	coreServer, err := coreserver.NewServer(llmClient, *dbClients)
+	if err != nil {
+		log.Error(ctx, "failed to create coreServer", zap.Error(err))
+	}
 
-	core.RegisterCoreServiceServer(server, server2LLM)
-	reflection.Register(server)
-	pgClient, err := db.NewPostgres(ctx, cfg.Postgres)
-	// pgPool := postgresrepository.NewRepository(pgClient)
-	defer pgClient.Close()
+	core.RegisterCoreServiceServer(server, coreServer)
+
+	if err = server.Serve(lis); err != nil {
+		log.Error(ctx, "Failed to launch server", zap.Error(err))
+	}
+
+	// reflection.Register(server)
 }

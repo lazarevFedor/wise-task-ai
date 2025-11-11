@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/logger"
+	"go.uber.org/zap"
 )
 
 type PostgresConfig struct {
@@ -20,13 +21,15 @@ type PostgresConfig struct {
 }
 
 func NewPostgres(ctx context.Context, cfg PostgresConfig) (*pgxpool.Pool, error) {
-	// urlExample := "postgres://username:password@localhost:5432/database_name"
-	connstring := fmt.Sprintf("postgres://%s:%s@%s:%d/%s",
+	// urlExample := "postgres://username:password@localhost:5432/database_name?sslmode=disable&pool_min_conns=%d&pool_max_conns=%d"
+	connstring := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable&pool_min_conns=%d&pool_max_conns=%d",
 		cfg.Username,
 		cfg.Password,
 		cfg.Host,
 		cfg.Port,
-		cfg.DB)
+		cfg.DB,
+		cfg.MinConns,
+		cfg.MaxConns)
 
 	pgPool, err := pgxpool.New(ctx, connstring)
 	if err != nil {
@@ -34,7 +37,7 @@ func NewPostgres(ctx context.Context, cfg PostgresConfig) (*pgxpool.Pool, error)
 	}
 
 	log := logger.GetLoggerFromCtx(ctx)
-	log.Info(ctx, "connected to postgres feedback db")
+	log.Info(ctx, "connected to postgres feedback db", zap.String("URL", connstring))
 
 	return pgPool, nil
 }
