@@ -6,8 +6,10 @@ import (
 
 	"github.com/lazarevFedor/wise-task-ai/server/internal/config"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/coreserver"
+
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/api/core-service"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/api/llm-service"
+	"github.com/lazarevFedor/wise-task-ai/server/pkg/db"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/logger"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -17,14 +19,21 @@ import (
 
 func main() {
 	ctx := context.Background()
-	log, err := logger.NewLogger(ctx)
+	ctx, err := logger.NewLoggerContext(ctx)
+	log := logger.GetLoggerFromCtx(ctx)
 	if err != nil {
 		log.Error(ctx, "Failed to make new logger", zap.Error(err))
 		return
 	}
 
-	cfg, err := config.NewCoreServerConfig()
+	log.Info(ctx, "first log in main")
 
+	cfg, err := config.NewCoreServerConfig()
+	if err != nil {
+		log.Error(ctx, "failed to load core configuration", zap.Error(err))
+		return
+	}
+	//TODO: Заполнить реальные контейнер и порт
 	container, port := "localhost", "0000"
 	clientConn, err := grpc.NewClient(fmt.Sprintf("%s:%s", container, port),
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -43,6 +52,7 @@ func main() {
 
 	core.RegisterCoreServiceServer(server, server2LLM)
 	reflection.Register(server)
-
-	// DB
+	pgClient, err := db.NewPostgres(ctx, cfg.Postgres)
+	// pgPool := postgresrepository.NewRepository(pgClient)
+	defer pgClient.Close()
 }
