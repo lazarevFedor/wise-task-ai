@@ -1,4 +1,4 @@
-// Package server contains core server settings and functionality
+// Package coreserver contains core server settings and functionality
 package coreserver
 
 import (
@@ -6,16 +6,15 @@ import (
 	"fmt"
 	"time"
 
-	"go.uber.org/zap"
-
-	"github.com/lazarevFedor/wise-task-ai/server/internal/config"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/embeddings"
+	"github.com/lazarevFedor/wise-task-ai/server/internal/entities"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/repository/postgresrepository"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/repository/qdrantrepository"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/api/core-service"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/api/llm-service"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/db"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/logger"
+	"go.uber.org/zap"
 )
 
 type Server struct {
@@ -25,23 +24,14 @@ type Server struct {
 	postgresRepo *postgresrepository.PostgresRepository
 }
 
-func NewServer(ctx context.Context, client llm.LlmServiceClient, cfg *config.CoreServerConfig) (*Server, error) {
-	qdrantClient, err := db.NewQdrant(ctx, cfg.Qdrant)
-	if err != nil {
-		return nil, fmt.Errorf("NewServer: failed to create qdrant client: %w", err)
-	}
-	qdrantRepo := qdrantrepository.NewRepository(qdrantClient)
+func NewServer(client llm.LlmServiceClient, dbCLients db.Clients) (*Server, error) {
+	qdrantRepo := qdrantrepository.NewRepository(dbCLients.Qdrant)
 
-	postgresClient, err := db.NewPostgres(ctx, cfg.Postgres)
-	if err != nil {
-		return nil, fmt.Errorf("NewServer: failed to create postgres client: %w", err)
-	}
-	postgresRepo := postgresrepository.New(postgresClient)
+	postgresRepo := postgresrepository.New(dbCLients.Postgres)
 
 	return &Server{llmClient: client,
 		qdrantRepo:   qdrantRepo,
-		postgresRepo: postgresRepo,
-	}, nil
+		postgresRepo: postgresRepo}, nil
 }
 
 func (s *Server) Prompt(ctx context.Context, req *core.PromptRequest) (*core.PromptResponse, error) {
