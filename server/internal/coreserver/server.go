@@ -4,10 +4,12 @@ package coreserver
 import (
 	"context"
 	"fmt"
-	"go.uber.org/zap"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/lazarevFedor/wise-task-ai/server/internal/config"
+	"github.com/lazarevFedor/wise-task-ai/server/internal/embeddings"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/repository/postgresrepository"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/repository/qdrantrepository"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/api/core-service"
@@ -30,11 +32,11 @@ func NewServer(ctx context.Context, client llm.LlmServiceClient, cfg *config.Cor
 	}
 	qdrantRepo := qdrantrepository.NewRepository(qdrantClient)
 
-	postgresClient, err := db.NewPostgres(ctx, *cfg.Postgres)
+	postgresClient, err := db.NewPostgres(ctx, cfg.Postgres)
 	if err != nil {
 		return nil, fmt.Errorf("NewServer: failed to create postgres client: %w", err)
 	}
-	postgresRepo := postgresrepository.NewRepository(postgresClient)
+	postgresRepo := postgresrepository.New(postgresClient)
 
 	return &Server{llmClient: client,
 		qdrantRepo:   qdrantRepo,
@@ -48,22 +50,20 @@ func (s *Server) Prompt(ctx context.Context, req *core.PromptRequest) (*core.Pro
 
 	log := logger.GetLoggerFromCtx(ctx)
 
-	//TODO: vectorize request text
-	var requestVector []float32
-	//FIXME: searchResult is not used, it waits for request vectorization
+	requestVector, err := embeddings.Embed(req.Text)
+	if err != nil {
+		return nil, fmt.Errorf("Prompt: failed to vectorize request: %w", err)
+	}
+
 	seacrhResult, err := s.qdrantRepo.Search(ctx, requestVector)
-	log.Error(ctx, "Prompt: FIXME: searchResult is not used", zap.Any("var", seacrhResult))
 	if err != nil {
 		return nil, fmt.Errorf("Prompt: failed to search in Qdrant: %w", err)
 	}
 
-	//TODO: unvectorize searchResult to []string
-	var unvectorizedResult []string
-
-	log.Info(ctx, "Sending Prompt to LLM...:")
+	log.Info(ctx, "Sending Prompt to LLM...:", zap.Strings("requests", seacrhResult))
 	llmResp, err := s.llmClient.Generate(ctx, &llm.GenerateRequest{
 		Question: req.Text,
-		Contexts: unvectorizedResult,
+		Contexts: seacrhResult,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("llmClient.Prompt: %w", err)
