@@ -10,7 +10,7 @@ import (
 
 type CoreServerConfig struct {
 	Qdrant   db.QdrantConfig   `env-prefix:"CORE_QDRANT_"`
-	Postgres db.PostgresConfig `env-prefix:"CORE_POSTGRES_"`
+	Postgres db.PostgresConfig `env-prefix:"POSTGRES_"`
 	Host     string            `env:"CORE_SERVER_HOST"`
 	IntPort  string            `env:"CORE_SERVER_INT_PORT"`
 	RestPort string            `env:"CORE_SERVER_REST_PORT"`
