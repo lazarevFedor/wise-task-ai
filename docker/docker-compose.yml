@@ -1,21 +1,74 @@
+name: wise-task-ai
+
 services:
-  llm-server:
-    build:
-      context: ..
-      dockerfile: llm-service/Dockerfile
-    ports: 
-      - "8081:8081"
+  # llm-server:
+  #   build:
+  #     context: ..
+  #     dockerfile: llm-service/Dockerfile
+  #   ports: 
+  #     - "8081:8081"
 
   # llm:
-  # llm-db:
   
   core_server:
+    container_name: core_server
     build:
       context: ..
       dockerfile: server/cmd/Dockerfile
     ports: 
       - "8080:8080"
+    env_file:
+      - ../.env
+    networks:
+    - core_network
     
+  postgresql_feedbacks:
+    container_name: feedback_postgres
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    volumes:
+      - ../db_data/feedback:/var/lib/postgresql/data 
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${CORE_POSTGRES_USERNAME} -d $${CORE_POSTGRES_USERNAME} -p 5432"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    env_file:
+      - ../.env
+    networks:
+      - core_network
+    # restart: unless-stopped
 
-  # feedback-db:
+  
+  qdrant_db:
+    container_name: qdrant_db
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+    healthcheck:
+      test: bash -c ':> /dev/tcp/127.0.0.1/6333' || exit 1
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    networks:
+      - core_network
+  
+  ollama:
+    container_name: ollama
+    image: ollama/ollama:latest
+    volumes:
+      - ../ollama:/root/.ollama
+    ports:
+    - "11343:11343"
+    environment:
+      OLLAMA_KEEP_ALIVE: -1
+    networks:
+      - core_network
+
+networks:
+  core_network:
+    driver: bridge
+  
   
