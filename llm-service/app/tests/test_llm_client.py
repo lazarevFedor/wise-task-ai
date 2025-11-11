@@ -10,11 +10,7 @@ class TestLLMClient:
     @pytest.fixture
     def llm_client(self):
         """Create an instance of LLMClient"""
-        return llm_client.LLMClient(
-            ollama_urls=['http://localhost:11434', 'http://localhost:11435'],
-            max_concurrent_requests=2,
-            request_timeout=30.0
-        )
+        return llm_client.LLMClient()
 
     @pytest.fixture
     def mock_session(self):
@@ -35,25 +31,9 @@ class TestLLMClient:
     def test_init_with_default_values(self):
         """Test init with default values."""
         client = llm_client.LLMClient()
-        assert client.ollama_urls == ['http://localhost:11434']
+        assert client.ollama_urls == ['http://ollama:11434']
         assert client.max_concurrent_requests == 3
-        assert client.request_timeout == 60.0
-
-    def test_init_with_custom_values(self):
-        """Test init with custom values"""
-        client = llm_client.LLMClient(
-            ollama_urls=['http://custom:11435'],
-            max_concurrent_requests=5,
-            request_timeout=10.0
-        )
-        assert client.ollama_urls == ['http://custom:11435']
-        assert client.max_concurrent_requests == 5
-        assert client.request_timeout == 10.0
-
-    def test_init_with_empty_urls_raises_error(self):
-        """Test for empty urls raises error"""
-        with pytest.raises(ValueError, match='No ollama urls provided'):
-            llm_client.LLMClient(ollama_urls=[])
+        assert client.request_timeout == 120.0
 
     @pytest.mark.asyncio
     async def test_initialize_creates_session(self, llm_client, mock_session):

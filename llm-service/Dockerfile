@@ -1,11 +1,19 @@
-FROM python:3.13
+FROM python:3.13 as builder
 
 WORKDIR /llm-service
 
 COPY requirements.txt .
 
-RUN pip install -r requirements.txt --no-cache-dir
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+FROM python:3.13-slim
+
+WORKDIR /llm-service
+
+COPY --from=builder /root/.local /root/.local
 
 COPY . .
 
-CMD ["python", "app/main.py", "localhost:8081"]
+ENV PATH=/root/.local/bin:$PATH
+
+CMD ["python", "app/main.py"]

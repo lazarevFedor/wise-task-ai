@@ -1,9 +1,8 @@
-import time
+from time import time as now
 from concurrent import futures
 from pathlib import Path
 import grpc
-import llm_service.llm_service_pb2_grpc as llm_service_pb2_grpc
-import llm_service.llm_service_pb2 as llm_service_pb2
+from llm_service import llm_service_pb2_grpc, llm_service_pb2
 from logger import get_logger
 from llm_client import LLMClient
 from prompt_engine import PromptEngine
@@ -51,7 +50,7 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
             llm_service_pb2.GenerateResponse:
             The response with answer, processing time, and success status.
         """
-        start_time = time.time()
+        start_time = now()
 
         try:
             self.logger.info(
@@ -79,7 +78,7 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
                 'Sending prompt to LLM...'
             )
             answer = await self.llm_client.generate(prompt=prompt)
-            processing_time = time.time() - start_time
+            processing_time = now() - start_time
             self.logger.debug(
                 f'Generation complete: question="{request.question}", '
                 f'Processing time: {processing_time}'
@@ -93,7 +92,7 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
             )
 
         except Exception as e:
-            processing_time = time.time() - start_time
+            processing_time = now() - start_time
             error_message = f'Generation error: {str(e)}'
             self.logger.error(error_message)
             return llm_service_pb2.GenerateResponse(
