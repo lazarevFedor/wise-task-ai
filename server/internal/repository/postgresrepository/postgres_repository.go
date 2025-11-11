@@ -22,7 +22,7 @@ type PostgresRepository struct {
 	pg *pgxpool.Pool
 }
 
-func NewRepository(client *pgxpool.Pool) *PostgresRepository {
+func New(client *pgxpool.Pool) *PostgresRepository {
 	return &PostgresRepository{client}
 }
 

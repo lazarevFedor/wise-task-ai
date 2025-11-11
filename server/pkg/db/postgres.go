@@ -10,23 +10,23 @@ import (
 )
 
 type PostgresConfig struct {
-	host     string `env:"CORE_POSTGRES_HOST"`
-	port     int    `env:"CORE_POSTGRES_PORT"`
-	db       string `env:"CORE_POSTGRES_DB"`
-	username string `env:"CORE_POSTGRES_USERNAME"`
-	password string `env:"CORE_POSTGRES_PASSWORD"`
-	maxConns int    `env:"CORE_POSTGRES_MAXCONNS"`
-	minConns int    `env:"CORE_POSTGRES_MINCONNS"`
+	Host     string `env:"HOST"`
+	Port     int    `env:"PORT"`
+	DB       string `env:"DB"`
+	Username string `env:"USERNAME"`
+	Password string `env:"PASSWORD"`
+	MaxConns int    `env:"MAXCONNS"`
+	MinConns int    `env:"MINCONNS"`
 }
 
 func NewPostgres(ctx context.Context, cfg PostgresConfig) (*pgxpool.Pool, error) {
 	// urlExample := "postgres://username:password@localhost:5432/database_name"
 	connstring := fmt.Sprintf("postgres://%s:%s@%s:%d/%s",
-		cfg.username,
-		cfg.password,
-		cfg.host,
-		cfg.port,
-		cfg.db)
+		cfg.Username,
+		cfg.Password,
+		cfg.Host,
+		cfg.Port,
+		cfg.DB)
 
 	pgPool, err := pgxpool.New(ctx, connstring)
 	if err != nil {
