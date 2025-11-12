@@ -1,14 +1,17 @@
 name: wise-task-ai
 
 services:
-  # llm-server:
-  #   build:
-  #     context: ..
-  #     dockerfile: llm-service/Dockerfile
-  #   ports: 
-  #     - "8081:8081"
-
-  # llm:
+  llm_server:
+    container_name: llm_server
+    build:
+      context: ..
+      dockerfile: llm-service/Dockerfile
+    ports:
+      - "8081:8081"
+    env_file:
+      - ../.env
+    networks:
+      - core_network
   
   core_server:
     container_name: core_server
