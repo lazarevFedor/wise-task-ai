@@ -8,6 +8,7 @@ from llm_client import LLMClient
 from prompt_engine import PromptEngine
 from query_classifier import QueryClassifier
 from config import config
+from grpc_reflection.v1alpha import reflection
 
 logger = get_logger(__name__)
 
@@ -149,7 +150,7 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
             )
 
 
-async def serve_grpc(host: str = 'localhost', port: int = 8081):
+async def serve_grpc(host: str = 'llm_server', port: int = 8081):
     """
     Start gRPC-server.
 
@@ -168,36 +169,45 @@ async def serve_grpc(host: str = 'localhost', port: int = 8081):
     """
     host = host or config.LLM_GRPC_HOST
     port = port or config.LLM_GRPC_PORT
-    async with LLMClient() as llm_client:
-        try:
-            prompts_dir = Path(__file__).parent.parent / 'prompts'
-            logger.info(f'Loading prompts from: {prompts_dir}')
+    llm_client = None
 
-            prompt_engine = PromptEngine(prompts_dir)
+    try:
+        prompts_dir = Path(__file__).parent.parent / 'prompts'
+        logger.info(f'Loading prompts from: {prompts_dir}')
 
-            await llm_client.initialize()
-            logger.info('LLM client initialized successfully')
+        prompt_engine = PromptEngine(prompts_dir)
+        llm_client = LLMClient()
 
-            server = grpc.aio.server(
-                futures.ThreadPoolExecutor(max_workers=10),
-                options=[
-                    ('grpc.max_send_message_length', 50 * 1024 * 1024),
-                    ('grpc.max_receive_message_length', 50 * 1024 * 1024),
-                ]
-            )
+        # Инициализируем LLM клиент
+        await llm_client.initialize()
+        logger.info('LLM client initialized successfully')
 
-            servicer = LLMServiceServicer(llm_client, prompt_engine)
-            llm_service_pb2_grpc.add_LLMServiceServicer_to_server(servicer, server)
+        server = grpc.aio.server(
+            futures.ThreadPoolExecutor(max_workers=10),
+            options=[
+                ('grpc.max_send_message_length', 50 * 1024 * 1024),
+                ('grpc.max_receive_message_length', 50 * 1024 * 1024),
+            ]
+        )
 
-            listen_addr = f'{host}:{port}'
-            server.add_insecure_port(listen_addr)
+        SERVICE_NAMES = (
+            llm_service_pb2.DESCRIPTOR.services_by_name['LLMService'].full_name,
+            reflection.SERVICE_NAME,
+        )
+        reflection.enable_server_reflection(SERVICE_NAMES, server)
 
-            logger.info(f'Starting gRPC server on http://{listen_addr}')
-            await server.start()
+        servicer = LLMServiceServicer(llm_client, prompt_engine)
+        llm_service_pb2_grpc.add_LLMServiceServicer_to_server(servicer, server)
 
-            return server
+        listen_addr = f'{host}:{port}'
+        server.add_insecure_port(listen_addr)
 
-        except Exception as e:
-            logger.error(f'Failed to start gRPC server: {e}')
-            raise
-    return None
+        logger.info(f'Starting gRPC server on http://{listen_addr}')
+        await server.start()
+
+        return server
+
+    except Exception as e:
+        logger.error(f'Failed to start gRPC server: {e}')
+        await llm_client.close()
+        raise
