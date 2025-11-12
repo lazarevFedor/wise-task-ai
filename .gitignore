@@ -2,4 +2,33 @@ llm-service/venv/
 **/.DS_Store
 .idea
 *.env
-.vscode
+.vscode# OS
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.coverage*
+.mypy_cache/
+
+# Env / secrets
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# Caches and large local data
+cache/
+*.log
+
+# Notebooks and artifacts
+*.ipynb
+.ipynb_checkpoints/
+
+# Build outputs
+dist/
+build/
