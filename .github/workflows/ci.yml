@@ -71,7 +71,7 @@ jobs:
         run: flake8 .
       - name: Run pytest
         working-directory: llm-service
-        run: pytest -v tests/ --cov=llm_service --cov-report=term-missing
+        run: pytest -v app/tests/
   build:
     name: Build Project
     runs-on: ubuntu-latest
