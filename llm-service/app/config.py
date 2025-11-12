@@ -3,7 +3,7 @@ from logger import get_logger
 
 
 class Config:
-    LLM_GRPC_HOST = getenv('LLM_GRPC_HOST', 'localhost')
+    LLM_GRPC_HOST = getenv('LLM_GRPC_HOST', 'llm_server')
     LLM_GRPC_PORT = int(getenv('LLM_GRPC_PORT', '8081'))
 
     LLM_OLLAMA_URLS = getenv('LLM_OLLAMA_URLS', 'http://ollama:11434').split(',')
