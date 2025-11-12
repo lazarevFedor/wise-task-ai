@@ -6,12 +6,14 @@
 - собирать длинный контекст для ответов `/v1/rag` (RAG: Retrieval-Augmented Generation);
 - принимать готовые эмбеддинги по `/v1/upsert` (для внешних сервисов, например Go).
 
-Сервис в docker-compose и может быть доступен в той же сети Compose (DNS‑имя `ingest-api:8080`).
+Сервис запускается через docker-compose из папки `docker/` этого проекта и может быть доступен:
+- локально: `http://localhost:8081`
+- внутри Docker-сети: `http://qdrant_ingest:8080`.
 
 ## Состав
-- qdrant — векторное хранилище (порты 6333/6334).
-- indexer — индексатор LaTeX: чанкинг, эмбеддинги, загрузка в Qdrant.
-- ingest-api — FastAPI на 8080: /health, /v1/search, /v1/rag, /v1/upsert, /v1/delete, /v1/ensure-collection, /v1/collection-info, /v1/auto.
+- qdrant_db — векторное хранилище (порты 6333/6334, данные в volume `qdrant_storage`).
+- qdrant_indexer — индексатор LaTeX: чанкинг, эмбеддинги, загрузка в Qdrant (запускается как задача).
+- qdrant_ingest — FastAPI (внутри 8080, наружу 8081): /health, /v1/search, /v1/rag, /v1/upsert, /v1/delete, /v1/ensure-collection, /v1/collection-info, /v1/auto.
 
 ## Требования
 - Docker + Docker Compose
@@ -24,25 +26,25 @@ Copy-Item .env.example .env -Force
 ```
 При желании включите защиту API ключом: задайте `API_KEY=...` в `.env`.
 
-2) Поднимите хранилище и API
+2) Поднимите хранилище и API (compose лежит в `docker/`)
 ```powershell
-docker compose up -d qdrant ingest-api
+docker compose -f .\docker\docker-compose.yml up -d qdrant_db qdrant_ingest
 ```
 
 3) Первая индексация (один раз)
 ```powershell
-docker compose run --rm indexer python main.py --recreate --batch-size 64
+docker compose -f .\docker\docker-compose.yml run --rm qdrant_indexer python main.py --recreate --batch-size 64
 ```
 
 4) Проверка
 ```powershell
-Invoke-RestMethod http://localhost:8080/health
+Invoke-RestMethod http://localhost:8081/health
 ```
 
 Повторные перезапуски сервиса не требуют переиндексации — данные сохраняются в volume.
 
 ## Как использовать API
-Базовый URL локально: `http://localhost:8080` (внутри Compose: `http://ingest-api:8080`).
+Базовый URL локально: `http://localhost:8081` (внутри Compose: `http://qdrant_ingest:8080`).
 
 Основные эндпоинты:
 - GET /health — состояние и параметры коллекции
@@ -56,15 +58,15 @@ Invoke-RestMethod http://localhost:8080/health
 
 Примеры (опционально):
 ```powershell
-curl -X POST http://localhost:8080/v1/search -H "Content-Type: application/json" -d '{"query":"алгоритм дейкстры","limit":5}'
+curl -X POST http://localhost:8081/v1/search -H "Content-Type: application/json" -d '{"query":"алгоритм дейкстры","limit":5}'
 
-curl -X POST http://localhost:8080/v1/rag -H "Content-Type: application/json" -d '{"query":"свойства барицентра дерева"}'
+curl -X POST http://localhost:8081/v1/rag -H "Content-Type: application/json" -d '{"query":"свойства барицентра дерева"}'
 ```
 
 Если включён API ключ (`API_KEY`), передавайте заголовок `X-API-Key: <ключ>`.
 
 ## Интеграция с Go в одном docker-compose
-В том же compose ваш Go‑сервис может вызывать API по адресу `http://ingest-api:8080`.
+В том же compose ваш Go‑сервис может вызывать API по адресу `http://qdrant_ingest:8080`.
 
 Пример фрагмента `docker-compose.yml`:
 ```yaml
@@ -74,7 +76,7 @@ services:
     depends_on:
       - ingest-api
     environment:
-      - INGEST_API_BASE=http://ingest-api:8080
+  - INGEST_API_BASE=http://qdrant_ingest:8080
       - API_KEY=${API_KEY} # если включена защита API
     # network: общий с ingest-api (по умолчанию default)
 ```
@@ -97,9 +99,9 @@ networks:
 
 # файл B (Qdrant + ingest-api)
 services:
-  ingest-api:
+  qdrant_ingest:
     networks: [qnet]
-  qdrant:
+  qdrant_db:
     networks: [qnet]
 
 # файл C (Go)
@@ -107,7 +109,7 @@ services:
   go-app:
     networks: [qnet]
     environment:
-      - INGEST_API_BASE=http://ingest-api:8080
+  - INGEST_API_BASE=http://qdrant_ingest:8080
 ```
 
 ## Интеграция в внешний compose (wise-task-ai)
@@ -147,6 +149,17 @@ networks:
 
 После добавления сервис будет доступен по `http://localhost:8081` (или по внутреннему адресу `http://qdrant_ingest:8080` для других контейнеров в той же сети). Убедитесь, что в среде указан `API_KEY`, если включена защита.
 
+## Где лежит compose и важные пути
+
+- Файл compose: `docker/docker-compose.yml`.
+- Сборка сервисов `qdrant_ingest` и `qdrant_indexer` идёт из `../Qdrant/indexer` (на уровень выше относительно `docker/`).
+- Файл `.env` читается из корня (`../.env`).
+- Кэши моделей примонтированы, чтобы не качать их при каждом запуске:
+  - `../Qdrant/cache/huggingface -> /root/.cache/huggingface`
+  - `../Qdrant/cache/sentence-transformers -> /root/.cache/sentence-transformers`
+  - `../Qdrant/cache/pymorphy2 -> /root/.cache/pymorphy2`
+- Данные Qdrant сохраняются в volume `qdrant_storage` и переживают перезапуск.
+
 ## Конфигурация (через .env)
 Смотрите полный список и комментарии в `.env.example`. Ключевые:
 - CHUNK_MIN_LEN / CHUNK_MAX_LEN / CHUNK_OVERLAP — размер и перекрытие чанков (для indexer). При изменении — переиндексация.
@@ -165,15 +178,15 @@ RAG_STITCH_AFTER=6
 ```
 
 ## Индексация и обновления
-- Первая загрузка: `docker compose run --rm indexer python main.py --recreate --batch-size 64`
-- Добавление новых файлов: `docker compose run --rm indexer python main.py --batch-size 64`
-- Полная переиндексация (меняли CHUNK_* или модель): `--recreate`
+- Первая загрузка: `docker compose -f .\docker\docker-compose.yml run --rm qdrant_indexer python main.py --recreate --batch-size 64`
+- Добавление новых файлов: `docker compose -f .\docker\docker-compose.yml run --rm qdrant_indexer python main.py --batch-size 64`
+- Полная переиндексация (меняли CHUNK_* или модель): добавляйте `--recreate`
 
 ## Мониторинг и эксплуатация
 ```powershell
-docker compose logs -f ingest-api
-docker compose logs -f qdrant
-Invoke-RestMethod http://localhost:8080/health
+docker compose -f .\docker\docker-compose.yml logs -f qdrant_ingest
+docker compose -f .\docker\docker-compose.yml logs -f qdrant_db
+Invoke-RestMethod http://localhost:8081/health
 ```
 
 ## Производственные заметки
@@ -185,7 +198,7 @@ Invoke-RestMethod http://localhost:8080/health
 - `test_api.py` — локально проверяет /health, /v1/search и /v1/rag. Поддерживает `API_KEY` из окружения и флаги `--rag`, `--limit`, `--context-chars`.
 
 ## FAQ
-— Изменил .env, но эффекта нет? Перезапустите контейнер API: `docker compose restart ingest-api`.
+— Изменил .env, но эффекта нет? Перезапустите контейнер API: `docker compose -f .\docker\docker-compose.yml restart qdrant_ingest`.
 — Хочу «более цельные» ответы: увеличьте CHUNK_MAX_LEN (+переиндексация) или расширьте SEARCH/RAG_STITCH_* и *_MAX_CHARS.
 — Модель другая? Обновите EMBEDDING_MODEL и VECTOR_SIZE на обоих сервисах и выполните полную переиндексацию.
 
