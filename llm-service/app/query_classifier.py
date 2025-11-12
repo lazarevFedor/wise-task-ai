@@ -32,7 +32,6 @@ class QueryClassifier:
         question_lower = question.lower().strip()
         self.logger.debug(f'Classifying question: "{question}"')
 
-
         for pattern in Pattern.definition_patterns:
             if re.search(pattern, question_lower):
                 self.logger.info(f'Question classified as DEFINITION: "{question}"')

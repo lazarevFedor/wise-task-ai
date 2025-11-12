@@ -24,5 +24,6 @@ class Config:
                     f'Default model: {cls.LLM_DEFAULT_MODEL}'
                     )
 
+
 config = Config()
 config.print_config()
