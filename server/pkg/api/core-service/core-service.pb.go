@@ -171,6 +171,7 @@ func (x *FeedbackRequest) GetResponse() string {
 
 type FeedbackResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	Error         string                 `protobuf:"bytes,1,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -205,6 +206,13 @@ func (*FeedbackResponse) Descriptor() ([]byte, []int) {
 	return file_core_service_core_service_proto_rawDescGZIP(), []int{3}
 }
 
+func (x *FeedbackResponse) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
 var File_core_service_core_service_proto protoreflect.FileDescriptor
 
 const file_core_service_core_service_proto_rawDesc = "" +
@@ -217,8 +225,9 @@ const file_core_service_core_service_proto_rawDesc = "" +
 	"\x0fFeedbackRequest\x12\x12\n" +
 	"\x04mark\x18\x01 \x01(\bR\x04mark\x12\x16\n" +
 	"\x06prompt\x18\x02 \x01(\tR\x06prompt\x12\x1a\n" +
-	"\bresponse\x18\x03 \x01(\tR\bresponse\"\x12\n" +
-	"\x10FeedbackResponse2y\n" +
+	"\bresponse\x18\x03 \x01(\tR\bresponse\"(\n" +
+	"\x10FeedbackResponse\x12\x14\n" +
+	"\x05error\x18\x01 \x01(\tR\x05error2y\n" +
 	"\vCoreService\x121\n" +
 	"\x06Prompt\x12\x12.api.PromptRequest\x1a\x13.api.PromptResponse\x127\n" +
 	"\bFeedback\x12\x14.api.FeedbackRequest\x1a\x15.api.FeedbackResponseB\n" +
