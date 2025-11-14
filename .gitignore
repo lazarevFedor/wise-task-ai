@@ -32,3 +32,5 @@ cache/
 # Build outputs
 dist/
 build/
+.vscode
+db_data

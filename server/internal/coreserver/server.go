@@ -15,6 +15,7 @@ import (
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/api/llm-service"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/db"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/logger"
+	"go.uber.org/zap"
 )
 
 type Server struct {
@@ -63,6 +64,16 @@ func (s *Server) Prompt(ctx context.Context, req *core.PromptRequest) (*core.Pro
 func (s *Server) Feedback(ctx context.Context, req *core.FeedbackRequest) (*core.FeedbackResponse, error) {
 	log := logger.GetLoggerFromCtx(ctx)
 	log.Info(ctx, "Sending Feedback to DB...:")
-	// sending to db
-	return nil, nil
+	feedback := &entities.Feedback{
+		Request:  req.Prompt,
+		Response: req.Response,
+		Mark:     req.Mark,
+	}
+	resp := &core.FeedbackResponse{}
+	if err := s.postgresRepo.InsertRate(ctx, feedback); err != nil {
+		resp.Error = fmt.Sprintf("failed to insert rate to postgres db: %w", err)
+		return resp, fmt.Errorf("failed to insert rate to postgres db: %w", err)
+	}
+	resp = &core.FeedbackResponse{Error: "OK"}
+	return resp, nil
 }

@@ -17,7 +17,9 @@ message FeedbackRequest{
 	string response = 3;
 }
 
-message FeedbackResponse{}
+message FeedbackResponse{
+	string error = 1;
+}
 
 service CoreService{
 	rpc Prompt(PromptRequest) returns (PromptResponse);

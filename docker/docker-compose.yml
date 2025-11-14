@@ -63,6 +63,18 @@ services:
       - core_network
     # Индексацию выполняют как job:
     # docker compose run --rm qdrant_indexer python main.py --recreate --batch-size 64
+  llm_server:
+    container_name: llm_server
+    build:
+      context: ..
+      dockerfile: llm-service/Dockerfile
+    ports:
+      - "8081:8081"
+    env_file:
+      - ../.env
+    networks:
+      - core_network
+  
   core_server:
     container_name: core_server
     build:
@@ -81,7 +93,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ../db_data/feedback:/var/lib/postgresql/data 
+      - ../db_data/feedback:/var/lib/postgresql/data  
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${CORE_POSTGRES_USERNAME} -d $${CORE_POSTGRES_USERNAME} -p 5432"]
       interval: 10s
