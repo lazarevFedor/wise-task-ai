@@ -1,14 +1,18 @@
 name: wise-task-ai
 
 services:
-  # llm-server:
-  #   build:
-  #     context: ..
-  #     dockerfile: llm-service/Dockerfile
-  #   ports: 
-  #     - "8081:8081"
+  ollama:
+    container_name: ollama
+    image: ollama/ollama:latest
+    volumes:
+      - ../ollama:/root/.ollama
+    ports:
+    - "11343:11343"
+    environment:
+      OLLAMA_KEEP_ALIVE: -1
+    networks:
+      - core_network
 
-  # llm:
   qdrant_ingest:
     container_name: qdrant_ingest
     build:
@@ -65,7 +69,7 @@ services:
       context: ..
       dockerfile: server/cmd/Dockerfile
     ports: 
-      - "8080:8080"
+      - "8085:8085"
     env_file:
       - ../.env
     networks:
@@ -103,18 +107,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 3
-    networks:
-      - core_network
-  
-  ollama:
-    container_name: ollama
-    image: ollama/ollama:latest
-    volumes:
-      - ../ollama:/root/.ollama
-    ports:
-    - "11343:11343"
-    environment:
-      OLLAMA_KEEP_ALIVE: -1
     networks:
       - core_network
 
