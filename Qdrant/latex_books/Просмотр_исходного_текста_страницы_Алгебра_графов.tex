@@ -1,0 +1,103 @@
+'''Алгебра графов''' (англ. ''algebra of graphs'') {{---}} способ построить на пространстве [[Основные определения теории графов#Ориентированные графы | ориентированных графов]] алгебраическую структуру. Впервые такая возможность была продемонстрирована McNulty и George F. в 1983 году.[https://www.researchgate.net/publication/225490641_Inherently_nonfinitely_based_finite_algebras McNulty, George F.; Shallon, Caroline R. (1983) {{---}} "Inherently nonfinitely based finite algebras", Universal algebra and lattice theory (Puebla, 1982), Lecture Notes in Math., 1004, Berlin, New York: Springer-Verlag, pp. 206–231.]
+== Основные определения ==
+{{Определение
+|definition=
+'''Пустой граф''' (англ. ''empty graph'') {{---}} [[Основные определения теории графов#Ориентированные графы|граф]] в котором нет вершин и ребер. Здесь и далее будем обозначать его как \varepsilon. То есть \varepsilon = \{\varnothing, \varnothing\}.
+}}
+{{Определение
+|definition=
+'''Одиночный граф''' (англ. ''single graph'') {{---}} [[Основные определения теории графов#Ориентированные графы|граф]] состоящий из одной вершины. Здесь и далее для удобства будем обозначать и одиночный граф и множество его вершин одной буквой. Например,  a = \{a, \varnothing \} {{---}} граф содержащий толко одну вершину a.
+}}
+{{Определение
+|definition=
+'''Алгеброй графов''' (англ. ''algebra of graphs'') называется множество ориентированных графов с двумя определенными на нем операциями.
+Пусть G_1 = \{V_1, E_1\} и G_2 = \{V_2, E_2\}. Тогда \forall G_1, G_2 
+* '''Сложение''' (англ. ''overlay''): G_1 + G_2 = \{V_1 \cup V_2, E_1 \cup E_2\}
+* '''Соединение''' (англ. ''connect''): G_1 \rightarrow G_2 = \{V_1 \cup V_2, E_1 \cup E_2 \cup V_1 \times V_2\}
+}}
+
+== Cвойства операций == 
+Данные операции обладают следующими свойствами очевидными из определения.
+=== Сложение ===
+* Наличие нейтрального элемента
+{{Утверждение
+|statement=G + \varepsilon = G 
+}}
+* ''Коммутативность:''
+{{Утверждение
+|statement=G_1 + G_2 = G_2 + G_1
+}}
+* ''Aссоциативность:'' 
+{{Утверждение
+|statement=G_1 + (G_2 + G_3) = (G_1 + G_2) + G_3
+}}
+
+=== Соединение ===
+* ''Наличие левого и правого нейтральных элементов:''
+{{Утверждение
+|statement=\varepsilon \rightarrow G = G \\G \rightarrow \varepsilon = G
+}}
+* ''Ассоциативность:''
+{{Утверждение
+|statement=G_1 \rightarrow (G_2 \rightarrow G_3) = (G_1 \rightarrow G_2) \rightarrow G_3
+|proof=
+Левая часть:
+
+G_1 \rightarrow (G_2 \rightarrow G_3) = (V_1, E_1) \rightarrow ((V_2, E_2) \rightarrow (V_3, E_3)) = (V_1, E_1) \rightarrow (V_2 \cup V_3, E_2 \cup E_3 \cup V_2 \times V_3) = (V_1 \cup V_2 \cup V_3, E_1 \cup E_2 \cup E_3 \cup V_2 \times V_3 \cup V_1 \times (V_2 \cup V_3)) = (V_1 \cup V_2 \cup V_3, E_1 \cup E_2 \cup E_3 \cup V_2 \times V_3 \cup V_1 \times V_2 \cup V_1 \times V_3) = (V_1 \cup V_2 \cup V_3, E_1 \cup E_2 \cup E_3 \cup V_1 \times V_2 \cup V_1 \times V_3 \cup V_2 \times V_3)
+
+Правая часть:
+
+(G_1 \rightarrow G_2) \rightarrow G_3 = ((V_1, E_1) \rightarrow (V_2, E_2)) \rightarrow (V_3, E_3) = (V_1 \cup V_2, E_1 \cup E_2 \cup V_1 \times V_2) \rightarrow (V_3, E_3) = (V_1 \cup V_2 \cup V_3, E_1 \cup E_2 \cup V_1 \times V_2 \cup E_3 \cup (V_1 \cup V_2) \times V_3) = (V_1 \cup V_2 \cup V_3, E_1 \cup E_2 \cup E_3 \cup V_1 \times V_2 \cup V_1 \times V_3 \cup V_2 \times V_3)
+}}
+
+=== Другие свойства ===
+* ''Левая и правая дистрибутивность:''
+{{Утверждение
+|statement= G_1 \rightarrow (G_2 + G_3) = G_1 \rightarrow G_2 + G_1\rightarrow G_3 \\ (G_1 + G_2) \rightarrow G_3 = G_1 \rightarrow G_3 + G_2 \rightarrow G_3
+|proof= 
+Левая часть:
+
+G_1 \rightarrow (G_2 + G_3) = (V_1, E_1) \rightarrow ((V_2, E_2) + (V_3, E_3)) = (V_1, E_1) \rightarrow (V_2 \cup V_3, E_2 \cup E_3) = (V_1 \cup V_2 \cup V_3, E_1 \cup E_2 \cup E_3 \cup V_1 \times (V_2 \cup V_3)
+
+Правая часть:
+
+G_1 \rightarrow G_2 + G_1 \rightarrow G_3 = (V_1, E_1) \rightarrow (V_2, E_2) + (V_1, E_1) \rightarrow (V_3, E_3) = (V_1 \cup V_2, E_1 \cup E_2 \cup V_1 \times V_2) + (V_1 \cup V_3, E_1 \cup E_3 \cup V_1 \times V_3) = (V_1 \cup V_2 \cup V_1 \cup V_3, E_1 \cup E_2 \cup V_1 \times V_2 \cup E_1 \cup E_3 \cup V_1 \times V_3) = (V_1 \cup V_2 \cup V_3, E_1 \cup E_2 \cup E_3 \cup V_1 \times V_2 \cup V_1 \times V_3) = (V_1 \cup V_2 \cup V_3, E_1 \cup E_2 \cup E_3 \cup V_1 \times (V_2 \cup V_3))
+
+Правая дистрибутивность доказывается аналогично.
+}}
+* ''Декомпозиция:''
+{{Утверждение
+|statement=G_1 \rightarrow G_2 \rightarrow G_3 = G_1 \rightarrow G_2 + G_1 \rightarrow G_3 + G_2 \rightarrow G_3
+|proof=
+Левая часть:
+
+G_1 \rightarrow G_2 \rightarrow G_3 = (V_1, E_1) \rightarrow (V_2, E_2) \rightarrow (V_3, E_3) = (V_1 \cup V_2, E_1 \cup E_2 \cup V_1 \times V_2) \rightarrow (V_3, E_3) = (V_1 \cup V_2 \cup V_3, E_1 \cup E_2 \cup V_1 \times V_2 \cup E_3 \cup (V_1 \cup V_2) \times V_3) = (V_1 \cup V_2 \cup V_3, E_1 \cup E_2 \cup E_3 \cup V_1 \times V_2 \cup V_1 \times V_3 \cup V_2 \times V_3)
+
+Правая часть:
+
+G_1 \rightarrow G_2 + G_1 \rightarrow G_3 + G_2 \rightarrow G_3 = (V_1, E_1) \rightarrow (V_2, E_2) + (V_1, E_1) \rightarrow (V_3, E_3) + (V_2, E_2) \rightarrow (V_3, E_3) = (V_1 \cup V_2, E_1 \cup E_2 \cup V_1 \times V_2) + (V_1 \cup V_3, E_1 \cup E_3 \cup V_1 \times V_3) + (V_2 \cup V_3, E_2 \cup E_3 \cup V_2 \times V_3) = (V_1 \cup V_2 \cup V_1 \cup V_3 \cup V_2 \cup V_3, E_1 \cup E_2 \cup V_1 \times V_2 \cup E_1 \cup E_3 \cup V_1 \times V_3 \cup E_2 \cup E_3 \cup V_2 \times V_3) = (V_1 \cup V_2 \cup V_3, E_1 \cup E_2 \cup E_3 \cup V_1 \times V_2 \cup V_1 \times V_3 \cup V_2 \times V_3)
+}}
+
+{{Утверждение
+|statement=Любой граф G = \{V, E\} можно представить в виде композиции сложений и соединений.
+|proof=Действительно, G = \sum_{(u, v\in V)}u \rightarrow v, где \sum это послeдовательное применение операции сложения графов.
+}}
+== Построение графов в функциональных языках ==
+Построенная нами алгебраическая структура очень полезна для использования в функциональных языках программирования. До введения понятия алгебры графов работа с ними в функциональных языках была очень неудобна и часто порождало ошибки.
+
+Дело в том, что способ представления в виде списка смежности либо матрицы смежности, широко используемых в императивных программах, оказался очень тяжело применим в функциональной среде.  Компилятор при представлении графа в виде списка не может проверить, ни его корректность в принципе, ни корректность совершения некоторой операции над ним. Но если представить граф в виде последовательности операций из простейших графов, то почти все проблемы, связанные с построением графа и проверкой его корректности, устраняются. 
+
+Подробная реализация на языке \mathrm{Haskell}[https://blogs.ncl.ac.uk/andreymokhov/an-algebra-of-graphs/ An algebra of graphs {{---}} "no time" Andrey Mokhov's blog].
+== См. также ==
+* [[Основные определения теории графов]]
+
+==Примечания==
+
+== Источники информации ==
+* [https://www.researchgate.net/publication/225490641_Inherently_nonfinitely_based_finite_algebras McNulty, George F.; Shallon, Caroline R. (1983), "Inherently nonfinitely based finite algebras", Universal algebra and lattice theory (Puebla, 1982), Lecture Notes in Math., 1004, Berlin, New York: Springer-Verlag, pp. 206–231 ] 
+* [https://www.staff.ncl.ac.uk/andrey.mokhov/algebra.pdf Algebra of Parameterised Graphs {{---}} Andrey Mokhov, Victor Khomenko, Newcastle University UK, ACM Transactions on Embedded Computing Systems, Vol. 1, No. 1, Article 1, Publication date: January 2014 .]
+* [https://blogs.ncl.ac.uk/andreymokhov/an-algebra-of-graphs/ An algebra of graphs {{---}} "no time" Andrey Mokhov's blog]
+* [https://blogs.ncl.ac.uk/andreymokhov/graphs-a-la-carte/ Graphs à la carte {{---}} "no time" Andrey Mokhov's blog]
+
+[[Категория: Алгоритмы и структуры данных]]
+[[Категория: Основные определения теории графов]]

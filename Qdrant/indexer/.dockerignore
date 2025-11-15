@@ -1,0 +1,20 @@
+# Python caches
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Virtual envs
+.venv/
+venv/
+
+# Tests and examples not needed in runtime image
+examples/
+**/tests/
+
+# Notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# Logs
+*.log

@@ -1,0 +1,3 @@
+# Local extras are intentionally light to speed up build
+fastembed>=0.2.7
+onnxruntime>=1.17.0
