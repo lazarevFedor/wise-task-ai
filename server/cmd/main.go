@@ -51,14 +51,6 @@ func main() {
 	defer pgClient.Close()
 	dbClients.Postgres = pgClient
 
-	qdrantClient, err := db.NewQdrant(ctx, cfg.Qdrant)
-	if err != nil {
-		log.Error(ctx, "failed to create qdrant client", zap.Error(err))
-		return
-	}
-	defer qdrantClient.Close()
-	dbClients.Qdrant = qdrantClient
-
 	// gRPC
 	llmConnURL := fmt.Sprintf("%s:%s", llmHost, llmPort)
 	conn, err := grpc.NewClient(llmConnURL, grpc.WithTransportCredentials(insecure.NewCredentials()))
