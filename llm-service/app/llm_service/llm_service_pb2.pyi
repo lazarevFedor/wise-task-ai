@@ -7,12 +7,14 @@ from typing import ClassVar as _ClassVar, Optional as _Optional
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class GenerateRequest(_message.Message):
-    __slots__ = ("question", "contexts")
+    __slots__ = ("question", "contexts", "requestId")
     QUESTION_FIELD_NUMBER: _ClassVar[int]
     CONTEXTS_FIELD_NUMBER: _ClassVar[int]
+    REQUESTID_FIELD_NUMBER: _ClassVar[int]
     question: str
     contexts: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, question: _Optional[str] = ..., contexts: _Optional[_Iterable[str]] = ...) -> None: ...
+    requestId: int
+    def __init__(self, question: _Optional[str] = ..., contexts: _Optional[_Iterable[str]] = ..., requestId: _Optional[int] = ...) -> None: ...
 
 class GenerateResponse(_message.Message):
     __slots__ = ("answer", "processingTime", "errorMessage")

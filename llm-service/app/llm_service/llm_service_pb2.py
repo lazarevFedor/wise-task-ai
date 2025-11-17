@@ -24,22 +24,22 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1dllm-service/llm-service.proto\x12\x03llm\"5\n\x0fGenerateRequest\x12\x10\n\x08question\x18\x01 \x01(\t\x12\x10\n\x08\x63ontexts\x18\x02 \x03(\t\"P\n\x10GenerateResponse\x12\x0e\n\x06\x61nswer\x18\x01 \x01(\t\x12\x16\n\x0eprocessingTime\x18\x02 \x01(\x01\x12\x14\n\x0c\x65rrorMessage\x18\x03 \x01(\t\"\x0f\n\rHealthRequest\"N\n\x0eHealthResponse\x12\x0f\n\x07healthy\x18\x01 \x01(\x08\x12\x16\n\x0estatus_message\x18\x02 \x01(\t\x12\x13\n\x0bmodelLoaded\x18\x03 \x01(\t2}\n\nLLMService\x12\x37\n\x08Generate\x12\x14.llm.GenerateRequest\x1a\x15.llm.GenerateResponse\x12\x36\n\x0bHealthCheck\x12\x12.llm.HealthRequest\x1a\x13.llm.HealthResponseB\tZ\x07pkg/apib\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x1dllm-service/llm-service.proto\x12\x03llm\"H\n\x0fGenerateRequest\x12\x10\n\x08question\x18\x01 \x01(\t\x12\x10\n\x08\x63ontexts\x18\x02 \x03(\t\x12\x11\n\trequestId\x18\x03 \x01(\x03\"P\n\x10GenerateResponse\x12\x0e\n\x06\x61nswer\x18\x01 \x01(\t\x12\x16\n\x0eprocessingTime\x18\x02 \x01(\x01\x12\x14\n\x0c\x65rrorMessage\x18\x03 \x01(\t\"\x0f\n\rHealthRequest\"N\n\x0eHealthResponse\x12\x0f\n\x07healthy\x18\x01 \x01(\x08\x12\x16\n\x0estatus_message\x18\x02 \x01(\t\x12\x13\n\x0bmodelLoaded\x18\x03 \x01(\t2}\n\nllmService\x12\x37\n\x08Generate\x12\x14.llm.GenerateRequest\x1a\x15.llm.GenerateResponse\x12\x36\n\x0bHealthCheck\x12\x12.llm.HealthRequest\x1a\x13.llm.HealthResponseB\tZ\x07\x61pi/llmb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'llm_service.llm_service_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z\007pkg/api'
+  _globals['DESCRIPTOR']._serialized_options = b'Z\007api/llm'
   _globals['_GENERATEREQUEST']._serialized_start=38
-  _globals['_GENERATEREQUEST']._serialized_end=91
-  _globals['_GENERATERESPONSE']._serialized_start=93
-  _globals['_GENERATERESPONSE']._serialized_end=173
-  _globals['_HEALTHREQUEST']._serialized_start=175
-  _globals['_HEALTHREQUEST']._serialized_end=190
-  _globals['_HEALTHRESPONSE']._serialized_start=192
-  _globals['_HEALTHRESPONSE']._serialized_end=270
-  _globals['_LLMSERVICE']._serialized_start=272
-  _globals['_LLMSERVICE']._serialized_end=397
+  _globals['_GENERATEREQUEST']._serialized_end=110
+  _globals['_GENERATERESPONSE']._serialized_start=112
+  _globals['_GENERATERESPONSE']._serialized_end=192
+  _globals['_HEALTHREQUEST']._serialized_start=194
+  _globals['_HEALTHREQUEST']._serialized_end=209
+  _globals['_HEALTHRESPONSE']._serialized_start=211
+  _globals['_HEALTHRESPONSE']._serialized_end=289
+  _globals['_LLMSERVICE']._serialized_start=291
+  _globals['_LLMSERVICE']._serialized_end=416
 # @@protoc_insertion_point(module_scope)

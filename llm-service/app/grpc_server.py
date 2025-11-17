@@ -13,7 +13,7 @@ from grpc_reflection.v1alpha import reflection
 logger = get_logger(__name__)
 
 
-class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
+class LLMServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
     """
     gRPC servicer implementation for the LLM Service.
 
@@ -55,6 +55,7 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
 
         try:
             self.logger.info(
+                f'request_id={request.requestId} - '
                 f'Generate request received: question="{request.question}", '
                 f'contexts_count={len(request.contexts)}'
             )
@@ -81,6 +82,7 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
             answer = await self.llm_client.generate(prompt=prompt)
             processing_time = now() - start_time
             self.logger.debug(
+                f'request_id={request.requestId} - '
                 f'Generation complete: question="{request.question}", '
                 f'Processing time: {processing_time}'
                 f'Answer length: {len(answer)}'
@@ -95,7 +97,7 @@ class LLMServiceServicer(llm_service_pb2_grpc.LLMServiceServicer):
         except Exception as e:
             processing_time = now() - start_time
             error_message = f'Generation error: {str(e)}'
-            self.logger.error(error_message)
+            self.logger.error(f'request_id={request.requestId} - ' + error_message)
             return llm_service_pb2.GenerateResponse(
                 answer='',
                 processingTime=processing_time,
@@ -178,7 +180,6 @@ async def serve_grpc(host: str = 'llm_server', port: int = 8081):
         prompt_engine = PromptEngine(prompts_dir)
         llm_client = LLMClient()
 
-        # Инициализируем LLM клиент
         await llm_client.initialize()
         logger.info('LLM client initialized successfully')
 
@@ -191,13 +192,13 @@ async def serve_grpc(host: str = 'llm_server', port: int = 8081):
         )
 
         SERVICE_NAMES = (
-            llm_service_pb2.DESCRIPTOR.services_by_name['LLMService'].full_name,
+            llm_service_pb2.DESCRIPTOR.services_by_name['llmService'].full_name,
             reflection.SERVICE_NAME,
         )
         reflection.enable_server_reflection(SERVICE_NAMES, server)
 
         servicer = LLMServiceServicer(llm_client, prompt_engine)
-        llm_service_pb2_grpc.add_LLMServiceServicer_to_server(servicer, server)
+        llm_service_pb2_grpc.add_llmServiceServicer_to_server(servicer, server)
 
         listen_addr = f'{host}:{port}'
         server.add_insecure_port(listen_addr)
