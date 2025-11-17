@@ -1,7 +1,7 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS feedback(
-    id int NOT NULL PRIMARY KEY,
+CREATE TABLE IF NOT EXISTS feedbacks(
+    id SERIAL PRIMARY KEY,
     request TEXT NOT NULL,
     response TEXT NOT NULL,
     mark BOOLEAN NOT NULL,
