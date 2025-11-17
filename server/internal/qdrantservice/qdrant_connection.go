@@ -44,7 +44,7 @@ type QdrantHealthCheckResponse struct {
 
 func Search(prompt string) ([]string, error) {
 	if err := checkHealth(); err != nil {
-		return nil, fmt.Errorf("Seacrh: Qdrant id unhealth: %w", err)
+		return nil, fmt.Errorf("Seacrh: Qdrant is unhealth: %w", err)
 	}
 
 	reqBody, _ := json.Marshal(qdrantRequest{
