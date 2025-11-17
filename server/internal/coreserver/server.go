@@ -37,13 +37,11 @@ func (s *Server) Prompt(ctx context.Context, req *core.PromptRequest) (*core.Pro
 	defer cancel()
 	log := logger.GetLoggerFromCtx(ctx)
 
-	seacrhResult, err := qdrantservice.Search("Что такое алгоритм Дейкстры?")
+	seacrhResult, err := qdrantservice.Search(req.Text)
 	if err != nil {
 		return nil, fmt.Errorf("Prompt: failed to search in Qdrant: %w", err)
 	}
-	//FIXME
-	log.Info(ctx, "response from qdrant", zap.Strings("response", seacrhResult))
-
+	
 	log.Info(ctx, "Sending Qdrant's response to LLM...:", zap.Strings("requests", seacrhResult))
 	llmResp, err := s.llmClient.Generate(ctx, &llm.GenerateRequest{
 		Question: req.Text,
@@ -60,6 +58,7 @@ func (s *Server) Prompt(ctx context.Context, req *core.PromptRequest) (*core.Pro
 func (s *Server) Feedback(ctx context.Context, req *core.FeedbackRequest) (*core.FeedbackResponse, error) {
 	log := logger.GetLoggerFromCtx(ctx)
 	log.Info(ctx, "Sending Feedback to DB...:")
+	
 	feedback := &entities.Feedback{
 		Request:  req.Prompt,
 		Response: req.Response,
@@ -67,9 +66,9 @@ func (s *Server) Feedback(ctx context.Context, req *core.FeedbackRequest) (*core
 	}
 	resp := &core.FeedbackResponse{}
 	if err := s.postgresRepo.InsertRate(ctx, feedback); err != nil {
-		resp.Error = fmt.Sprintf("failed to insert rate to postgres db: %w", err)
+		resp.Error = fmt.Sprintf("failed to insert rate to postgres db: %s", err.Error())
 		return resp, fmt.Errorf("failed to insert rate to postgres db: %w", err)
 	}
-	resp = &core.FeedbackResponse{Error: "OK"}
+	resp.Error = "" 
 	return resp, nil
 }
