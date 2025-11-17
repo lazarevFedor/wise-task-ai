@@ -23,8 +23,10 @@ docker/secrets
 .idea/
 
 # Caches and large local data
-cache/
+Qdrant/cache/
 *.log
+Qdrant/latex_books
+ollama
 
 # Notebooks and artifacts
 *.ipynb
