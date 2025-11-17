@@ -71,7 +71,7 @@ jobs:
         run: flake8 .
       - name: Run pytest
         working-directory: llm-service
-        run: pytest -v app/tests/
+        run: pytest
   build:
     name: Build Project
     runs-on: ubuntu-latest
