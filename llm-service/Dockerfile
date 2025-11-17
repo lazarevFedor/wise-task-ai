@@ -1,4 +1,4 @@
-FROM python:3.13 as builder
+FROM python:3.13 AS builder
 
 WORKDIR /app
 
@@ -15,7 +15,5 @@ COPY --from=builder /root/.local /root/.local
 COPY llm-service/ .
 
 ENV PATH=/root/.local/bin:$PATH
-
-RUN ls
 
 CMD ["python", "app/main.py"]

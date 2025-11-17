@@ -1,6 +1,5 @@
 import logging
 
-
 def get_logger(name) -> logging.Logger:
     """
     Create and configure a logger for the llm_service.
@@ -14,8 +13,10 @@ def get_logger(name) -> logging.Logger:
     Returns:
         logging.Logger: A configured logger instance.
     """
+    logging.basicConfig(
+        handlers=[logging.StreamHandler()],
+        level=logging.INFO,
+        format='%(asctime)s - %(levelname)s - %(name)s - %(message)s'
+    )
     logger = logging.getLogger(f'llm_service.{name}')
-    logger.setLevel(logging.DEBUG)
-    handler = logging.StreamHandler()
-    logger.addHandler(handler)
     return logger
