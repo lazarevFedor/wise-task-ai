@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/lazarevFedor/wise-task-ai/server/internal/embeddings"
-	"github.com/lazarevFedor/wise-task-ai/server/internal/entities"
+	"go.uber.org/zap"
+
+	"github.com/lazarevFedor/wise-task-ai/server/internal/config"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/repository/postgresrepository"
-	"github.com/lazarevFedor/wise-task-ai/server/internal/repository/qdrantrepository"
+	"github.com/lazarevFedor/wise-task-ai/server/internal/qdrantservice"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/api/core-service"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/api/llm-service"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/db"
@@ -20,18 +21,19 @@ import (
 type Server struct {
 	core.UnimplementedCoreServiceServer
 	llmClient    llm.LlmServiceClient
-	qdrantRepo   *qdrantrepository.QdrantRepository
 	postgresRepo *postgresrepository.PostgresRepository
 }
 
-func NewServer(client llm.LlmServiceClient, dbCLients db.Clients) (*Server, error) {
-	qdrantRepo := qdrantrepository.NewRepository(dbCLients.Qdrant)
-
-	postgresRepo := postgresrepository.New(dbCLients.Postgres)
+func NewServer(ctx context.Context, client llm.LlmServiceClient, cfg *config.CoreServerConfig) (*Server, error) {
+	postgresClient, err := db.NewPostgres(ctx, cfg.Postgres)
+	if err != nil {
+		return nil, fmt.Errorf("NewServer: failed to create postgres client: %w", err)
+	}
+	postgresRepo := postgresrepository.New(postgresClient)
 
 	return &Server{llmClient: client,
-		qdrantRepo:   qdrantRepo,
-		postgresRepo: postgresRepo}, nil
+		postgresRepo: postgresRepo,
+	}, nil
 }
 
 func (s *Server) Prompt(ctx context.Context, req *core.PromptRequest) (*core.PromptResponse, error) {
@@ -40,17 +42,13 @@ func (s *Server) Prompt(ctx context.Context, req *core.PromptRequest) (*core.Pro
 
 	log := logger.GetLoggerFromCtx(ctx)
 
-	requestVector, err := embeddings.Embed(req.Text)
-	if err != nil {
-		return nil, fmt.Errorf("Prompt: failed to vectorize request: %w", err)
-	}
 
-	seacrhResult, err := s.qdrantRepo.Search(ctx, requestVector)
+	seacrhResult, err := qdrantrservice.Search(req.Text)
 	if err != nil {
 		return nil, fmt.Errorf("Prompt: failed to search in Qdrant: %w", err)
 	}
 
-	log.Info(ctx, "Sending Prompt to LLM...:", zap.Strings("requests", seacrhResult))
+	log.Info(ctx, "Sending Qdrant's response to LLM...:", zap.Strings("requests", seacrhResult))
 	llmResp, err := s.llmClient.Generate(ctx, &llm.GenerateRequest{
 		Question: req.Text,
 		Contexts: seacrhResult,
