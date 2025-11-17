@@ -41,15 +41,17 @@ func main() {
 	}
 
 	// DB Connections
-	dbClients := &db.Clients{}
-
+	var dbClients *db.Clients
 	pgClient, err := db.NewPostgres(ctx, cfg.Postgres)
 	if err != nil {
 		log.Error(ctx, "failed to connect to Postgres", zap.Error(err))
 		return
 	}
 	defer pgClient.Close()
-	dbClients.Postgres = pgClient
+
+	dbClients = &db.Clients{
+		Postgres: pgClient,
+	}
 
 	// gRPC
 	llmConnURL := fmt.Sprintf("%s:%s", llmHost, llmPort)
