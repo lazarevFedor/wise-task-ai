@@ -1,8 +1,5 @@
 import pytest
 from unittest.mock import AsyncMock, patch
-import sys
-import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import llm_client
 
 
