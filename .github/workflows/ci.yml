@@ -75,6 +75,34 @@ jobs:
       - name: Run pytest
         working-directory: llm-service
         run: pytest
+  test_qdrant:
+    name: Run tests and linting for Qdrant
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Cache Python dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install dependencies
+        working-directory: Qdrant/indexer
+        run: |
+          pip install -r requirements.txt
+          pip install pytest flake8
+      - name: Run flake8 linting
+        working-directory: Qdrant/indexer
+        run: flake8 .
+  #      - name: Run pytest
+  #        working-directory: Qdrant/indexer
+  #        run: pytest -v
   build:
     name: Build Project
     runs-on: ubuntu-latest
