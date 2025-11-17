@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 const (
@@ -18,7 +19,9 @@ type Logger struct {
 }
 
 func NewLoggerContext(ctx context.Context) (context.Context, error) {
-	logger, err := zap.NewDevelopment()
+	config := zap.NewDevelopmentConfig()
+	config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	logger, err := config.Build()
 	if err != nil {
 		return nil, fmt.Errorf("NewLogger: %w", err)
 	}

@@ -6,6 +6,7 @@ llm-service/venv/
 .DS_Store
 Thumbs.db
 
+
 # Python
 __pycache__/
 *.pyc
@@ -16,14 +17,16 @@ __pycache__/
 
 # Env / secrets
 .env
-
+docker/secrets
 # IDE
 .vscode/
 .idea/
 
 # Caches and large local data
-cache/
+Qdrant/cache/
 *.log
+Qdrant/latex_books
+ollama
 
 # Notebooks and artifacts
 *.ipynb

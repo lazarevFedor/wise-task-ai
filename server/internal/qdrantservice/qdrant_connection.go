@@ -1,5 +1,5 @@
 // Package qdrantservice is db and core interection
-package qdrantrservice
+package qdrantservice
 
 import (
 	"bytes"
@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	QdrantURL  = "http://qdrant_ingest:8080"
+	QdrantURL = "http://qdrant_ingest:8080"
 )
 
 type qdrantRequest struct {
@@ -19,23 +19,32 @@ type qdrantRequest struct {
 }
 
 type qdrantResponse struct {
-	Colection string          `json:"collection"`
-	Query     string          `json:"query"`
-	Results    []qdrantResults `json:"results"`
-	Amount    int             `json:"count"`
+    Collection string         `json:"collection"`
+    Query      string         `json:"query"`
+    Results    []qdrantResult `json:"results"`
+    Count      int            `json:"count"`
 }
 
-type qdrantResults struct {
-	Payload qdrantPayload `json:"payload"`
+type qdrantResult struct {
+    ID      string         `json:"id"`
+    Score   float64        `json:"score"`
+    Payload qdrantPayload  `json:"payload"`
 }
 
 type qdrantPayload struct {
-	Text string `json:"text"`
+    Title      string `json:"title"`
+    Source     string `json:"source"`
+    ChunkIndex int    `json:"chunk_index"`
+    Text       string `json:"text"`
+}
+
+type QdrantHealthCheckResponse struct {
+	Status string `json:"status"`
 }
 
 func Search(prompt string) ([]string, error) {
 	if err := checkHealth(); err != nil {
-		return nil, fmt.Errorf("Seacrh: Qdrant id unhealth: %w", err)
+		return nil, fmt.Errorf("Seacrh: Qdrant is unhealth: %w", err)
 	}
 
 	reqBody, _ := json.Marshal(qdrantRequest{
@@ -43,7 +52,8 @@ func Search(prompt string) ([]string, error) {
 		Limit: 5,
 	})
 	req, _ := http.NewRequest("POST", QdrantURL+"/v1/search", bytes.NewBuffer(reqBody))
-	if key := os.Getenv("API-KEY"); key != "" {
+	req.Header.Set("Content-Type", "application/json")
+	if key := os.Getenv("API_KEY"); key != "" {
 		req.Header.Set("X-API-Key", key)
 	}
 
@@ -53,8 +63,8 @@ func Search(prompt string) ([]string, error) {
 	}
 
 	var response qdrantResponse
-	if err := json.NewDecoder(req.Body).Decode(&resp); err != nil {
-		return nil, fmt.Errorf("Search: failed to encode qdrant response: %w", err)
+	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+		return nil, fmt.Errorf("Search: failed to decode qdrant response: %w", err)
 	}
 
 	result := make([]string, 0)
@@ -65,21 +75,24 @@ func Search(prompt string) ([]string, error) {
 	return result, nil
 }
 
-type QdrantHealthCheckResponse struct{
-	Status string `json:"status"`
-}
-
+//FIXME: healthcheck endpoint returns "error" if error and "status" if alls okey, idk how to validate those situations
 func checkHealth() error {
-	resp, err := http.Get(QdrantURL+"/health")
+	req, _ := http.NewRequest("GET", QdrantURL+"/health", nil)
+	if key := os.Getenv("API_KEY"); key != "" {
+		req.Header.Set("X-API-Key", key)
+	}
+	
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return fmt.Errorf("CheckHealth: failed to request qdrant db: %w", err)
 	}
+
 	var response QdrantHealthCheckResponse
-	if err = json.NewDecoder(resp.Body).Decode(&response); err != nil{
+	if err = json.NewDecoder(resp.Body).Decode(&response); err != nil {
 		return fmt.Errorf("ChecktHealth: failed to decode response: %w", err)
 	}
 
-	if response.Status != "ok"{
+	if response.Status != "ok" {
 		return fmt.Errorf("CheckHealth: Qdarant is unhealth, Status: %s", response.Status)
 	}
 	return nil

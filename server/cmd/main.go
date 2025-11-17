@@ -41,23 +41,17 @@ func main() {
 	}
 
 	// DB Connections
-	dbClients := &db.Clients{}
-
+	var dbClients *db.Clients
 	pgClient, err := db.NewPostgres(ctx, cfg.Postgres)
 	if err != nil {
 		log.Error(ctx, "failed to connect to Postgres", zap.Error(err))
 		return
 	}
 	defer pgClient.Close()
-	dbClients.Postgres = pgClient
 
-	qdrantClient, err := db.NewQdrant(ctx, cfg.Qdrant)
-	if err != nil {
-		log.Error(ctx, "failed to create qdrant client", zap.Error(err))
-		return
+	dbClients = &db.Clients{
+		Postgres: pgClient,
 	}
-	defer qdrantClient.Close()
-	dbClients.Qdrant = qdrantClient
 
 	// gRPC
 	llmConnURL := fmt.Sprintf("%s:%s", llmHost, llmPort)
