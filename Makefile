@@ -16,3 +16,11 @@ build:
 
 down:
 	docker compose -f ./docker/docker-compose.yml down -v
+
+genPy:
+	python -m grpc_tools.protoc \
+    -I./proto \
+    --python_out=./llm-service/app \
+    --grpc_python_out=./llm-service/app \
+    --pyi_out=./llm-service/app \
+    ./proto/llm-service/llm-service.proto
