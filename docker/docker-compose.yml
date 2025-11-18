@@ -4,8 +4,8 @@ services:
   llm_server:
     container_name: llm_server
     build:
-      context: ..
-      dockerfile: llm-service/Dockerfile
+      context: ../llm-service
+      dockerfile: Dockerfile
     ports:
       - "8084:8084"
     env_file:
@@ -16,13 +16,16 @@ services:
 
   ollama:
     container_name: ollama
-    image: ollama/ollama:latest
+    build: 
+      context: ../ollama
+      dockerfile: Dockerfile
     volumes:
       - ../ollama:/root/.ollama
     ports:
-    - "11343:11343"
+      - "11434:11434"
     environment:
       OLLAMA_KEEP_ALIVE: -1
+      MODEL: "llama3.2:3b-instruct-q4_K_M"
     networks:
       - core_network
       - llm_network
@@ -118,7 +121,11 @@ services:
     volumes:
       - ../db_data/feedback:/var/lib/postgresql/data
     healthcheck:
-      test: CMD-SHELL pg_isready -h localhost -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      test: >
+        CMD-SHELL
+        pg_isready
+        -U "$(cat /run/secrets/postgres_user)"
+        -d "$(cat /run/secrets/postgres_db)"
       interval: 10s
       timeout: 10s
       retries: 5
