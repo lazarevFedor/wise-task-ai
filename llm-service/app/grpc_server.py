@@ -13,7 +13,7 @@ from grpc_reflection.v1alpha import reflection
 logger = get_logger(__name__)
 
 
-class LLMServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
+class llmServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
     """
     gRPC servicer implementation for the LLM Service.
 
@@ -23,7 +23,7 @@ class LLMServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
 
     def __init__(self, llm_client: LLMClient, prompt_engine: PromptEngine):
         """
-        Initialize the LLMServiceServicer.
+        Initialize the llmServiceServicer.
 
         Args:
             llm_client (LLMClient): The LLM client instance for generating responses.
@@ -34,7 +34,7 @@ class LLMServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
         self.prompt_engine = prompt_engine
         self.query_classifier = QueryClassifier()
 
-        self.logger.info('LLMServiceServicer initialized')
+        self.logger.info('llmServiceServicer initialized')
 
     async def Generate(self, request, context):
         """
@@ -152,7 +152,7 @@ class LLMServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
             )
 
 
-async def serve_grpc(host: str = 'llm_server', port: int = 8081):
+async def serve_grpc(host: str = 'localhost', port: int = 8084):
     """
     Start gRPC-server.
 
@@ -161,7 +161,7 @@ async def serve_grpc(host: str = 'llm_server', port: int = 8081):
 
     Args:
         host (str, optional): The host to bind the server to. Defaults to 'localhost'.
-        port (int, optional): The port to bind the server to. Defaults to 8081.
+        port (int, optional): The port to bind the server to. Defaults to 8084.
 
     Returns:
         grpc.aio.Server: The started gRPC server instance.
@@ -169,8 +169,8 @@ async def serve_grpc(host: str = 'llm_server', port: int = 8081):
     Raises:
         Exception: If server startup fails.
     """
-    host = host or config.LLM_GRPC_HOST
-    port = port or config.LLM_GRPC_PORT
+    host = config.LLM_GRPC_HOST or host
+    port = config.LLM_GRPC_PORT or port
     llm_client = None
 
     try:
@@ -185,10 +185,6 @@ async def serve_grpc(host: str = 'llm_server', port: int = 8081):
 
         server = grpc.aio.server(
             futures.ThreadPoolExecutor(max_workers=10),
-            options=[
-                ('grpc.max_send_message_length', 50 * 1024 * 1024),
-                ('grpc.max_receive_message_length', 50 * 1024 * 1024),
-            ]
         )
 
         SERVICE_NAMES = (
@@ -197,13 +193,11 @@ async def serve_grpc(host: str = 'llm_server', port: int = 8081):
         )
         reflection.enable_server_reflection(SERVICE_NAMES, server)
 
-        servicer = LLMServiceServicer(llm_client, prompt_engine)
+        servicer = llmServiceServicer(llm_client, prompt_engine)
         llm_service_pb2_grpc.add_llmServiceServicer_to_server(servicer, server)
+        server.add_insecure_port(f'[::]:{port}')
 
-        listen_addr = f'{host}:{port}'
-        server.add_insecure_port(listen_addr)
-
-        logger.info(f'Starting gRPC server on http://{listen_addr}')
+        logger.info(f'Starting gRPC server on http://{host}:{port}')
         await server.start()
 
         return server
