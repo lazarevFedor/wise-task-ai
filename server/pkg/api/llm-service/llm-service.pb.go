@@ -24,7 +24,8 @@ const (
 type GenerateRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Question      string                 `protobuf:"bytes,1,opt,name=question,proto3" json:"question,omitempty"`
-	Contexts      []string               `protobuf:"bytes,2,rep,name=contexts,proto3" json:"contexts,omitempty"` // Repeated так как источников может быть много, и лучше инфу из них передавать массивом строк
+	Contexts      []string               `protobuf:"bytes,2,rep,name=contexts,proto3" json:"contexts,omitempty"`
+	RequestId     string                 `protobuf:"bytes,3,opt,name=requestId,proto3" json:"requestId,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -73,11 +74,18 @@ func (x *GenerateRequest) GetContexts() []string {
 	return nil
 }
 
+func (x *GenerateRequest) GetRequestId() string {
+	if x != nil {
+		return x.RequestId
+	}
+	return ""
+}
+
 type GenerateResponse struct {
 	state          protoimpl.MessageState `protogen:"open.v1"`
 	Answer         string                 `protobuf:"bytes,1,opt,name=answer,proto3" json:"answer,omitempty"`
-	ProcessingTime float64                `protobuf:"fixed64,2,opt,name=processingTime,proto3" json:"processingTime,omitempty"` // Время которое заняла генерация. Можно выдать в конце ответа пользователю.
-	ErrorMessage   string                 `protobuf:"bytes,3,opt,name=errorMessage,proto3" json:"errorMessage,omitempty"`       // Если ошибка во время генерации -- не пусто
+	ProcessingTime float64                `protobuf:"fixed64,2,opt,name=processingTime,proto3" json:"processingTime,omitempty"`
+	ErrorMessage   string                 `protobuf:"bytes,3,opt,name=errorMessage,proto3" json:"errorMessage,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -172,8 +180,8 @@ func (*HealthRequest) Descriptor() ([]byte, []int) {
 type HealthResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Healthy       bool                   `protobuf:"varint,1,opt,name=healthy,proto3" json:"healthy,omitempty"`
-	StatusMessage string                 `protobuf:"bytes,2,opt,name=status_message,json=statusMessage,proto3" json:"status_message,omitempty"` // Детали здоровья сервиса. Если не здоров -- здесь будет написана ошибка.
-	ModelLoaded   string                 `protobuf:"bytes,3,opt,name=modelLoaded,proto3" json:"modelLoaded,omitempty"`                          // Какая моделька в работе
+	StatusMessage string                 `protobuf:"bytes,2,opt,name=status_message,json=statusMessage,proto3" json:"status_message,omitempty"`
+	ModelLoaded   string                 `protobuf:"bytes,3,opt,name=modelLoaded,proto3" json:"modelLoaded,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -233,10 +241,11 @@ var File_llm_service_llm_service_proto protoreflect.FileDescriptor
 
 const file_llm_service_llm_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1dllm-service/llm-service.proto\x12\x03llm\"I\n" +
+	"\x1dllm-service/llm-service.proto\x12\x03llm\"g\n" +
 	"\x0fGenerateRequest\x12\x1a\n" +
 	"\bquestion\x18\x01 \x01(\tR\bquestion\x12\x1a\n" +
-	"\bcontexts\x18\x02 \x03(\tR\bcontexts\"v\n" +
+	"\bcontexts\x18\x02 \x03(\tR\bcontexts\x12\x1c\n" +
+	"\trequestId\x18\x03 \x01(\tR\trequestId\"v\n" +
 	"\x10GenerateResponse\x12\x16\n" +
 	"\x06answer\x18\x01 \x01(\tR\x06answer\x12&\n" +
 	"\x0eprocessingTime\x18\x02 \x01(\x01R\x0eprocessingTime\x12\"\n" +
