@@ -1,18 +1,38 @@
 name: wise-task-ai
 
 services:
-  # llm-server:
-  #   build:
-  #     context: ..
-  #     dockerfile: llm-service/Dockerfile
-  #   ports: 
-  #     - "8081:8081"
+  llm_server:
+    container_name: llm_server
+    build:
+      context: ../llm-service
+      dockerfile: Dockerfile
+    ports:
+      - "8084:8084"
+    env_file:
+      - ../.env
+    networks:
+      - core_network
+      - llm_network
 
-  # llm:
+  ollama:
+    container_name: ollama
+    build: 
+      context: ../ollama
+      dockerfile: Dockerfile
+    volumes:
+      - ../ollama:/root/.ollama
+    ports:
+      - "11434:11434"
+    environment:
+      OLLAMA_KEEP_ALIVE: -1
+      MODEL: "llama3.2:3b-instruct-q4_K_M"
+    networks:
+      - core_network
+      - llm_network
+
   qdrant_ingest:
     container_name: qdrant_ingest
     build:
-      # compose лежит в ./docker, а исходники Qdrant на уровень выше в ./Qdrant
       context: ../Qdrant/indexer
       dockerfile: Dockerfile
     depends_on:
@@ -25,10 +45,6 @@ services:
       - QDRANT_HOST=qdrant_db
       - QDRANT_PORT=6333
       - QDRANT_GRPC_PORT=6334
-      # - COLLECTION_NAME=latex_books
-      # - EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
-      # - VECTOR_SIZE=384
-      # - API_KEY=your_secret_key_here
     networks:
       - core_network
     volumes:
@@ -59,38 +75,7 @@ services:
       - core_network
     # Индексацию выполняют как job:
     # docker compose run --rm qdrant_indexer python main.py --recreate --batch-size 64
-  core_server:
-    container_name: core_server
-    build:
-      context: ..
-      dockerfile: server/cmd/Dockerfile
-    ports: 
-      - "8080:8080"
-    env_file:
-      - ../.env
-    networks:
-    - core_network
-    
-  postgresql_feedbacks:
-    container_name: feedback_postgres
-    image: postgres:latest
-    ports:
-      - "5432:5432"
-    volumes:
-      - ../db_data/feedback:/var/lib/postgresql/data 
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${CORE_POSTGRES_USERNAME} -d $${CORE_POSTGRES_USERNAME} -p 5432"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-      start_period: 10s
-    env_file:
-      - ../.env
-    networks:
-      - core_network
-    # restart: unless-stopped
 
-  
   qdrant_db:
     container_name: qdrant_db
     image: qdrant/qdrant:latest
@@ -106,20 +91,90 @@ services:
     networks:
       - core_network
   
-  ollama:
-    container_name: ollama
-    image: ollama/ollama:latest
-    volumes:
-      - ../ollama:/root/.ollama
+  core_server:
+    container_name: core_server
+    build:
+      context: ..
+      dockerfile: server/cmd/Dockerfile
+    ports: 
+      - "8085:8085"
+    env_file:
+      - ../.env
+    networks:
+      - core_network
+    depends_on:
+      - migrator
+    
+  postgresql_feedbacks:
+    container_name: postgresql_feedbacks
+    image: postgres:latest
     ports:
-    - "11343:11343"
-    environment:
-      OLLAMA_KEEP_ALIVE: -1
+      - "5432:5432"
+    secrets:
+      - postgres_user
+      - postgres_password
+      - postgres_db
+    environment: 
+      POSTGRES_USER_FILE: /run/secrets/postgres_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_DB_FILE: /run/secrets/postgres_db
+    volumes:
+      - ../db_data/feedback:/var/lib/postgresql/data
+    healthcheck:
+      test: >
+        CMD-SHELL
+        pg_isready
+        -U "$(cat /run/secrets/postgres_user)"
+        -d "$(cat /run/secrets/postgres_db)"
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
     networks:
       - core_network
 
+  migrator:
+    build:
+      context: ../server/migrator
+      dockerfile: Dockerfile
+    secrets:
+      - postgres_user
+      - postgres_password
+      - postgres_db
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/postgres_user
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_DB_FILE: /run/secrets/postgres_db
+    volumes:
+      - ../server/migrator/migrations:/migrations
+    networks:
+      - core_network
+    depends_on:
+    - postgresql_feedbacks
+    entrypoint:
+      - /bin/sh 
+      - -c 
+      - | 
+        USER=$( cat $$POSTGRES_USER_FILE )
+        PASSWORD=$( cat $$POSTGRES_PASSWORD_FILE )
+        DB=$( cat $$POSTGRES_DB_FILE )
+
+        goose -dir /migrations \
+          postgres "postgres://$$USER:$$PASSWORD@postgresql_feedbacks:5432/$$DB?sslmode=disable" up
+    
+
+secrets:
+  postgres_user:
+    file: secrets/postgres_user
+  postgres_password:
+    file: secrets/postgres_password
+  postgres_db:
+    file: secrets/postgres_db
+
 networks:
   core_network:
+    driver: bridge
+  llm_network:
     driver: bridge
  
 volumes:
