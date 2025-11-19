@@ -25,4 +25,4 @@ RUN chmod +x /app/auto_index.sh
 ARG EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 ENV EMBEDDING_MODEL=${EMBEDDING_MODEL}
 
-CMD ["python", "serve.py"]
+CMD ["python", "main.py"]
