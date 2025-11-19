@@ -1,9 +1,13 @@
 from __future__ import annotations
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 import requests
 
-from phrase_utils import _expected_source_for_query, _expected_source_for_title, _derive_phrases
+from phrase_utils import (
+    _expected_source_for_query,
+    _expected_source_for_title,
+    _derive_phrases,
+)
 
 __all__ = [
     "inject_canonical_and_title_sources",
@@ -43,7 +47,6 @@ def inject_canonical_and_title_sources(
                         results.append(r)
     except Exception:
         pass
-    # Derived title/phrase guesses
     try:
         src_candidates: List[str] = []
         et = _expected_source_for_title(query)

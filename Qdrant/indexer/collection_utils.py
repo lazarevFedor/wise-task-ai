@@ -12,6 +12,7 @@ __all__ = [
     "ensure_collection",
 ]
 
+
 def _resolve_distance(name: str) -> Distance:
     normalized = (name or "cosine").strip().lower()
     if normalized in {"cos", "cosine"}:
@@ -21,6 +22,7 @@ def _resolve_distance(name: str) -> Distance:
     if normalized in {"l2", "euclid", "euclidean"}:
         return Distance.EUCLID
     raise ValueError(f"Unsupported distance metric: {name}")
+
 
 def _normalize_point_id(raw_id: int | str) -> int | str:
     if isinstance(raw_id, int):
@@ -38,13 +40,20 @@ def _normalize_point_id(raw_id: int | str) -> int | str:
             return str(derived)
     raise ValueError("Point id must be int or str")
 
+
 def _normalize_ids(ids: Iterable[int | str]) -> List[int | str]:
     return [_normalize_point_id(value) for value in ids]
 
-def ensure_collection(client: QdrantClient, collection_name: str, vector_size: int, vector_distance: Distance) -> None:
+
+def ensure_collection(
+    client: QdrantClient,
+    collection_name: str,
+    vector_size: int,
+    vector_distance: Distance,
+) -> None:
     try:
         info = client.get_collections()
-        names = [c.name for c in getattr(info, 'collections', [])]
+        names = [c.name for c in getattr(info, "collections", [])]
         if collection_name in names:
             return
         client.recreate_collection(

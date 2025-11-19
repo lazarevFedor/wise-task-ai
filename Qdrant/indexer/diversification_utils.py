@@ -47,7 +47,7 @@ def mmr_diversify(
         if best is None:
             break
         bi, bc = best
-        bc = dict(bc)  
+        bc = dict(bc)
         bc["_tokens"] = tokens_list[bi]
         selected.append(bc)
         del candidates[bi]

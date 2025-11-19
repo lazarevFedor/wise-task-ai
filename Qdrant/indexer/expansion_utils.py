@@ -44,19 +44,27 @@ def adaptive_expand_pool(
     if not active or _has_strong_signals(candidates):
         return candidates, False, pool_initial
     try:
-        extra_limit = min(500, max(internal_limit * 2, internal_limit + 80, internal_max))
+        extra_limit = min(
+            500, max(internal_limit * 2, internal_limit + 80, internal_max)
+        )
         if extra_limit <= internal_limit:
             return candidates, False, pool_initial
-        resp2 = requests.post(qdrant_url, json={
-            "vector": vector,
-            "limit": extra_limit,
-            "with_payload": True,
-        }, timeout=10)
+        resp2 = requests.post(
+            qdrant_url,
+            json={
+                "vector": vector,
+                "limit": extra_limit,
+                "with_payload": True,
+            },
+            timeout=10,
+        )
         if not resp2.ok:
             return candidates, False, pool_initial
         js2 = resp2.json()
         base_ids = {r.get("id") for r in raw_results}
-        new_results = [r for r in js2.get("result", []) or [] if r.get("id") not in base_ids]
+        new_results = [
+            r for r in js2.get("result", []) or [] if r.get("id") not in base_ids
+        ]
         for raw in new_results:
             payload = raw.get("payload", {}) or {}
             cand = scoring_func(raw, payload, legacy=True)

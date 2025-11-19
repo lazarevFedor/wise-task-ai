@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List
 import requests
 
 __all__ = ["stitch_neighbors_for_hit", "stitch_neighbors_for_hits"]
@@ -23,12 +23,16 @@ def _scroll_range(
         ]
     }
     scroll_url = f"{qdrant_base_url}/collections/{collection}/points/scroll"
-    s_resp = requests.post(scroll_url, json={
-        "filter": flt,
-        "with_payload": True,
-        "limit": limit,
-        "offset": None,
-    }, timeout=timeout)
+    s_resp = requests.post(
+        scroll_url,
+        json={
+            "filter": flt,
+            "with_payload": True,
+            "limit": limit,
+            "offset": None,
+        },
+        timeout=timeout,
+    )
     s_resp.raise_for_status()
     s_data = s_resp.json()
     return s_data.get("result", {}).get("points", [])
@@ -61,8 +65,10 @@ def stitch_neighbors_for_hit(
             lte_idx=lte_idx,
             limit=(before + after + 8),
         )
+
         def _idx(p):
             return (p.get("payload", {}) or {}).get("chunk_index", 0)
+
         points.sort(key=_idx)
         pieces: List[str] = []
         for p in points:
@@ -75,7 +81,7 @@ def stitch_neighbors_for_hit(
                 pieces.append(str(seg))
         stitched_text = "\n\n".join(pieces)
         if max_chars is not None and max_chars > 0:
-            stitched_text = stitched_text[: max_chars]
+            stitched_text = stitched_text[:max_chars]
         new_hit = dict(hit)
         new_pl = dict(pl)
         new_pl["text"] = stitched_text

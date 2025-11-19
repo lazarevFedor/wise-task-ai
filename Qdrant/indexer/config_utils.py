@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-from typing import Any
 
 __all__ = [
     "_getenv_bool",
@@ -53,11 +52,13 @@ __all__ = [
     "W_TEXT_PHRASE",
 ]
 
+
 def _getenv_bool(name: str, default: bool) -> bool:
     val = os.getenv(name)
     if val is None:
         return default
     return val.strip().lower() in {"1", "true", "yes", "y", "on"}
+
 
 DEFAULT_COLLECTION: str = os.getenv("COLLECTION_NAME", "latex_books")
 VECTOR_SIZE: int = int(os.getenv("VECTOR_SIZE", "384"))
@@ -68,7 +69,9 @@ DEFAULT_SEARCH_INCLUDE_DEBUG: bool = _getenv_bool("SEARCH_INCLUDE_DEBUG", False)
 DEFAULT_SEARCH_STITCH_NEIGHBORS: bool = _getenv_bool("SEARCH_STITCH_NEIGHBORS", True)
 DEFAULT_SEARCH_STITCH_BEFORE: int = int(os.getenv("SEARCH_STITCH_BEFORE", "2"))
 DEFAULT_SEARCH_STITCH_AFTER: int = int(os.getenv("SEARCH_STITCH_AFTER", "8"))
-DEFAULT_SEARCH_STITCH_USE_CHUNK_TEXT: bool = _getenv_bool("SEARCH_STITCH_USE_CHUNK_TEXT", True)
+DEFAULT_SEARCH_STITCH_USE_CHUNK_TEXT: bool = _getenv_bool(
+    "SEARCH_STITCH_USE_CHUNK_TEXT", True
+)
 DEFAULT_SEARCH_LIMIT: int = int(os.getenv("SEARCH_DEFAULT_LIMIT", "5"))
 SEARCH_INTERNAL_MULT: int = int(os.getenv("SEARCH_INTERNAL_MULT", "18"))
 SEARCH_INTERNAL_MIN: int = int(os.getenv("SEARCH_INTERNAL_MIN", "40"))
@@ -80,6 +83,7 @@ def _w(name: str, default: float) -> float:
         return float(os.getenv(f"WEIGHT_{name}", str(default)))
     except Exception:
         return default
+
 
 W_VECTOR = _w("VECTOR", 1.0)
 W_LEX_MATCH = _w("LEX_MATCH", 0.50)

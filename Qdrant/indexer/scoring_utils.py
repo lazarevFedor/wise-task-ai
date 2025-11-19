@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from typing import Dict, Any, List, Optional
 
-from token_utils import _extract_tokens, _approx_in
+from token_utils import _extract_tokens
 from phrase_utils import _derive_phrases
 
 __all__ = [
@@ -14,9 +14,15 @@ __all__ = [
     "compute_rag_candidate_score_expansion_legacy",
 ]
 
+
 def _is_definition_query(text: str) -> bool:
     q = (text or "").lower()
-    return ("что такое" in q) or ("определен" in q) or ("definition" in q) or ("определи" in q)
+    return (
+        ("что такое" in q)
+        or ("определен" in q)
+        or ("definition" in q)
+        or ("определи" in q)
+    )
 
 
 def prepare_query_context(query: str) -> Dict[str, Any]:
@@ -24,7 +30,7 @@ def prepare_query_context(query: str) -> Dict[str, Any]:
     q_tokens: List[str] = _extract_tokens(q)
     phrases: List[str] = _derive_phrases(q)
     definitional: bool = _is_definition_query(q)
-    algo_query: bool = ("алгоритм" in q.lower())
+    algo_query: bool = "алгоритм" in q.lower()
     title_focus_token: Optional[str] = None
     try:
         m = re.search(r"алгоритм\s+([A-Za-zА-Яа-яЁё\-]+)", q, flags=re.IGNORECASE)
@@ -86,7 +92,11 @@ def compute_search_candidate_score(
     title = str(payload.get("title") or "")
     source = payload.get("source")
     chunk_idx = payload.get("chunk_index")
-    text_raw = str(payload.get("chunk_text") or "") if with_chunk_text else str(payload.get("text") or payload.get("chunk_text") or "")
+    text_raw = (
+        str(payload.get("chunk_text") or "")
+        if with_chunk_text
+        else str(payload.get("text") or payload.get("chunk_text") or "")
+    )
     text_lower = text_raw.lower()
 
     q_tokens = qctx["q_tokens"]
@@ -130,20 +140,56 @@ def compute_search_candidate_score(
         except Exception:
             expected_source = None
     exact_source_match = 1 if (source and expected_source == source) else 0
-    algo_name_match = 1 if (title_focus_token and _approx_in(ttl, title_focus_token)) else 0
-    def_boost = 1 if (definitional and ("определен" in text_lower or "определен" in ttl or "definition" in text_lower or "definition" in ttl)) else 0
-    def_like = 1 if (algo_query and (" — алгоритм" in text_lower or " это алгоритм" in text_lower)) else 0
-    has_properties = 1 if ("основные свойства" in text_lower or "основные свойства" in ttl) else 0
+    algo_name_match = (
+        1 if (title_focus_token and _approx_in(ttl, title_focus_token)) else 0
+    )
+    def_boost = (
+        1
+        if (
+            definitional
+            and (
+                "определен" in text_lower
+                or "определен" in ttl
+                or "definition" in text_lower
+                or "definition" in ttl
+            )
+        )
+        else 0
+    )
+    def_like = (
+        1
+        if (
+            algo_query
+            and (" — алгоритм" in text_lower or " это алгоритм" in text_lower)
+        )
+        else 0
+    )
+    has_properties = (
+        1 if ("основные свойства" in text_lower or "основные свойства" in ttl) else 0
+    )
     has_lemma_theorem = 1 if ("лемма" in text_lower or "теорема" in text_lower) else 0
 
     rare_focus_tokens = [t for t in q_tokens if len(t) >= 9]
     focus_present = any(t in ttl or t in source_str for t in rare_focus_tokens)
     barycenter_focus = 1 if focus_present else 0
-    bary_bonus = (3.5 if (rare_focus_tokens and focus_present) else 0.0)
-    bary_miss_penalty = (-2.2 if (rare_focus_tokens and not focus_present) else 0.0)
-    boilerplate = 1 if any(k in text_lower for k in (
-        "источники информации", "см. также", "категория:", "== реализация ==", "== корректность ==", "== идея ==", "== оценка производительности =="
-    )) else 0
+    bary_bonus = 3.5 if (rare_focus_tokens and focus_present) else 0.0
+    bary_miss_penalty = -2.2 if (rare_focus_tokens and not focus_present) else 0.0
+    boilerplate = (
+        1
+        if any(
+            k in text_lower
+            for k in (
+                "источники информации",
+                "см. также",
+                "категория:",
+                "== реализация ==",
+                "== корректность ==",
+                "== идея ==",
+                "== оценка производительности ==",
+            )
+        )
+        else 0
+    )
 
     final_score = (
         vec_score * W_VECTOR
@@ -165,12 +211,22 @@ def compute_search_candidate_score(
         + bary_bonus
         + bary_miss_penalty
         + (W_BOILERPLATE_PENALTY if (algo_query and boilerplate) else 0.0)
-        + (W_EARLY_CHUNK_BONUS if (algo_query and (payload.get("chunk_index", 9999) is not None and int(payload.get("chunk_index", 9999)) <= TH_EARLY_CHUNK_INDEX)) else 0.0)
+        + (
+            W_EARLY_CHUNK_BONUS
+            if (
+                algo_query
+                and (
+                    payload.get("chunk_index", 9999) is not None
+                    and int(payload.get("chunk_index", 9999)) <= TH_EARLY_CHUNK_INDEX
+                )
+            )
+            else 0.0
+        )
     )
 
     text_out = text_raw
     if max_chars is not None and max_chars > 0:
-        text_out = text_out[: max_chars]
+        text_out = text_out[:max_chars]
 
     result = {
         "id": raw.get("id"),
@@ -248,14 +304,17 @@ def compute_rag_candidate_score(
     title = str(payload.get("title") or "")
     source = payload.get("source")
     chunk_idx = payload.get("chunk_index")
-    text_raw = str(payload.get("chunk_text") or "") if with_chunk_text else str(payload.get("text") or payload.get("chunk_text") or "")
+    text_raw = (
+        str(payload.get("chunk_text") or "")
+        if with_chunk_text
+        else str(payload.get("text") or payload.get("chunk_text") or "")
+    )
     low = text_raw.lower()
 
     q_tokens = qctx["q_tokens"]
     phrases = qctx["phrases"]
     definitional = qctx["definitional"]
     algo_query = qctx["algo_query"]
-    phrase_lower = qctx["phrase_lower"]
     title_focus_token = qctx["title_focus_token"]
 
     matches = 0
@@ -285,22 +344,59 @@ def compute_rag_candidate_score(
                 fuzzy_text_hits += 1
     source_str = str(source or "").lower()
     source_match = 1 if (q_tokens and any(t in source_str for t in q_tokens)) else 0
-    algo_name_match = 1 if (title_focus_token and _approx_in(ttl, title_focus_token)) else 0
-    def_boost = 1 if (definitional and ("определен" in low or "определен" in ttl or "definition" in low or "definition" in ttl)) else 0
+    algo_name_match = (
+        1 if (title_focus_token and _approx_in(ttl, title_focus_token)) else 0
+    )
+    def_boost = (
+        1
+        if (
+            definitional
+            and (
+                "определен" in low
+                or "определен" in ttl
+                or "definition" in low
+                or "definition" in ttl
+            )
+        )
+        else 0
+    )
     if expected_source is None:
         try:
             expected_source = _expected_source_for_query(query)
         except Exception:
             expected_source = None
     exact_source_match = 1 if (source and expected_source == source) else 0
-    def_like = 1 if (algo_query and (" — алгоритм" in low or " это алгоритм" in low)) else 0
-    boilerplate = 1 if any(k in low for k in (
-        "источники информации", "см. также", "категория:", "== реализация ==", "== корректность ==", "== идея ==", "== оценка производительности =="
-    )) else 0
+    def_like = (
+        1 if (algo_query and (" — алгоритм" in low or " это алгоритм" in low)) else 0
+    )
+    boilerplate = (
+        1
+        if any(
+            k in low
+            for k in (
+                "источники информации",
+                "см. также",
+                "категория:",
+                "== реализация ==",
+                "== корректность ==",
+                "== идея ==",
+                "== оценка производительности ==",
+            )
+        )
+        else 0
+    )
     is_definition_flag = 1 if payload.get("is_definition") else 0
     is_algorithm_flag = 1 if payload.get("is_algorithm") else 0
     has_math_flag = 1 if payload.get("has_math") else 0
-    algo_name_payload_match = 1 if (title_focus_token and payload.get("algorithm_name") and _approx_in(str(payload.get("algorithm_name")), title_focus_token)) else 0
+    algo_name_payload_match = (
+        1
+        if (
+            title_focus_token
+            and payload.get("algorithm_name")
+            and _approx_in(str(payload.get("algorithm_name")), title_focus_token)
+        )
+        else 0
+    )
 
     final_score = (
         vec_score * W_VECTOR
@@ -321,10 +417,22 @@ def compute_rag_candidate_score(
         + (W_IS_ALGORITHM_FLAG if (algo_query and is_algorithm_flag) else 0.0)
         + (W_DEF_LIKE if def_like else 0.0)
         + (W_BOILERPLATE_PENALTY if (algo_query and boilerplate) else 0.0)
-        + (W_EARLY_CHUNK_BONUS if (algo_query and (payload.get("chunk_index", 9999) is not None and int(payload.get("chunk_index", 9999)) <= TH_EARLY_CHUNK_INDEX)) else 0.0)
+        + (
+            W_EARLY_CHUNK_BONUS
+            if (
+                algo_query
+                and (
+                    payload.get("chunk_index", 9999) is not None
+                    and int(payload.get("chunk_index", 9999)) <= TH_EARLY_CHUNK_INDEX
+                )
+            )
+            else 0.0
+        )
     )
 
-    text_out = text_raw[: context_chars] if context_chars and context_chars > 0 else text_raw
+    text_out = (
+        text_raw[:context_chars] if context_chars and context_chars > 0 else text_raw
+    )
     cand = {
         "id": raw.get("id"),
         "score": final_score,
@@ -400,7 +508,11 @@ def compute_rag_candidate_score_expansion_legacy(
     title = str(payload.get("title") or "")
     source = payload.get("source")
     chunk_idx = payload.get("chunk_index")
-    text_raw = str(payload.get("chunk_text") or "") if with_chunk_text else str(payload.get("text") or payload.get("chunk_text") or "")
+    text_raw = (
+        str(payload.get("chunk_text") or "")
+        if with_chunk_text
+        else str(payload.get("text") or payload.get("chunk_text") or "")
+    )
     low = text_raw.lower()
 
     q_tokens = qctx["q_tokens"]
@@ -435,22 +547,59 @@ def compute_rag_candidate_score_expansion_legacy(
                 fuzzy_text_hits += 1
     source_str = str(source or "").lower()
     source_match = 1 if (q_tokens and any(t in source_str for t in q_tokens)) else 0
-    algo_name_match = 1 if (title_focus_token and _approx_in(ttl, title_focus_token)) else 0
-    def_boost = 1 if (definitional and ("определен" in low or "определен" in ttl or "definition" in low or "definition" in ttl)) else 0
+    algo_name_match = (
+        1 if (title_focus_token and _approx_in(ttl, title_focus_token)) else 0
+    )
+    def_boost = (
+        1
+        if (
+            definitional
+            and (
+                "определен" in low
+                or "определен" in ttl
+                or "definition" in low
+                or "definition" in ttl
+            )
+        )
+        else 0
+    )
     if expected_source is None:
         try:
             expected_source = _expected_source_for_query(query)
         except Exception:
             expected_source = None
     exact_source_match = 1 if (source and expected_source == source) else 0
-    def_like = 1 if (algo_query and (" — алгоритм" in low or " это алгоритм" in low)) else 0
-    boilerplate = 1 if any(k in low for k in (
-        "источники информации", "см. также", "категория:", "== реализация ==", "== корректность ==", "== идея ==", "== оценка производительности =="
-    )) else 0
+    def_like = (
+        1 if (algo_query and (" — алгоритм" in low or " это алгоритм" in low)) else 0
+    )
+    boilerplate = (
+        1
+        if any(
+            k in low
+            for k in (
+                "источники информации",
+                "см. также",
+                "категория:",
+                "== реализация ==",
+                "== корректность ==",
+                "== идея ==",
+                "== оценка производительности ==",
+            )
+        )
+        else 0
+    )
     is_definition_flag = 1 if payload.get("is_definition") else 0
     is_algorithm_flag = 1 if payload.get("is_algorithm") else 0
     has_math_flag = 1 if payload.get("has_math") else 0
-    algo_name_payload_match = 1 if (title_focus_token and payload.get("algorithm_name") and _approx_in(str(payload.get("algorithm_name")), title_focus_token)) else 0
+    algo_name_payload_match = (
+        1
+        if (
+            title_focus_token
+            and payload.get("algorithm_name")
+            and _approx_in(str(payload.get("algorithm_name")), title_focus_token)
+        )
+        else 0
+    )
 
     final_score = (
         vec_score * W_VECTOR
@@ -471,10 +620,22 @@ def compute_rag_candidate_score_expansion_legacy(
         + (W_IS_ALGORITHM_FLAG if (algo_query and is_algorithm_flag) else 0.0)
         + (W_DEF_LIKE if def_like else 0.0)
         + (W_BOILERPLATE_PENALTY if (algo_query and boilerplate) else 0.0)
-        + (W_EARLY_CHUNK_BONUS if (algo_query and (payload.get("chunk_index", 9999) is not None and int(payload.get("chunk_index", 9999)) <= TH_EARLY_CHUNK_INDEX)) else 0.0)
+        + (
+            W_EARLY_CHUNK_BONUS
+            if (
+                algo_query
+                and (
+                    payload.get("chunk_index", 9999) is not None
+                    and int(payload.get("chunk_index", 9999)) <= TH_EARLY_CHUNK_INDEX
+                )
+            )
+            else 0.0
+        )
     )
 
-    text_out = text_raw[: context_chars] if context_chars and context_chars > 0 else text_raw
+    text_out = (
+        text_raw[:context_chars] if context_chars and context_chars > 0 else text_raw
+    )
     cand = {
         "id": raw.get("id"),
         "score": final_score,

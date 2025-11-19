@@ -4,6 +4,7 @@ import re
 
 __all__ = ["_sanitize_context"]
 
+
 def _sanitize_context(text: str) -> str:
     if not text:
         return ""
