@@ -15,7 +15,7 @@ import (
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	// "google.golang.org/grpc/reflection"
+	"google.golang.org/grpc/reflection"
 )
 
 const (
@@ -83,5 +83,5 @@ func main() {
 		log.Error(ctx, "Failed to launch server", zap.Error(err))
 	}
 
-	// reflection.Register(server)
+	reflection.Register(server)
 }
