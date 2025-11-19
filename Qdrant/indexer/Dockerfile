@@ -1,20 +1,28 @@
-FROM python:3.10-slim
+
+FROM python:3.10 AS builder
+WORKDIR /build
+COPY requirements-local.txt requirements-local.txt
+COPY requirements.txt requirements.txt
+RUN pip wheel --wheel-dir /wheels -r requirements-local.txt && \
+    pip wheel --wheel-dir /wheels -r requirements.txt
+
+FROM python:3.10-slim AS runtime
 ENV PYTHONUNBUFFERED=1 \
-	HF_HOME=/root/.cache/huggingface \
-	TRANSFORMERS_CACHE=/root/.cache/huggingface \
-	SENTENCE_TRANSFORMERS_HOME=/root/.cache/sentence-transformers
+    HF_HOME=/root/.cache/huggingface \
+    TRANSFORMERS_CACHE=/root/.cache/huggingface \
+    SENTENCE_TRANSFORMERS_HOME=/root/.cache/sentence-transformers
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y build-essential git gcc && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
-COPY requirements-local.txt .
-RUN pip install --no-cache-dir -r requirements-local.txt && \
-	pip install --no-cache-dir -r requirements.txt
+COPY --from=builder /wheels /wheels
+RUN pip install --no-cache-dir /wheels/* && rm -rf /wheels
+
+COPY . .
+RUN chmod +x /app/auto_index.sh
+
 
 ARG EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
 ENV EMBEDDING_MODEL=${EMBEDDING_MODEL}
 
-
-COPY . .
-CMD ["python", "main.py"]
+CMD ["python", "serve.py"]
