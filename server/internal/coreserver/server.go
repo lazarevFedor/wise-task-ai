@@ -33,7 +33,7 @@ func NewServer(client llm.LlmServiceClient, dbCLients db.Clients) (*Server, erro
 }
 
 func (s *Server) Prompt(ctx context.Context, req *core.PromptRequest) (*core.PromptResponse, error) {
-	ctx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	ctx, cancel := context.WithTimeout(ctx, 3*time.Minute)
 	defer cancel()
 	log := logger.GetLoggerFromCtx(ctx)
 
@@ -46,9 +46,10 @@ func (s *Server) Prompt(ctx context.Context, req *core.PromptRequest) (*core.Pro
 	llmResp, err := s.llmClient.Generate(ctx, &llm.GenerateRequest{
 		Question: req.Text,
 		Contexts: seacrhResult,
+		RequestId: ctx.Value(logger.RequestID).(string),
 	})
 	if err != nil {
-		return nil, fmt.Errorf("llmClient.Prompt: %w", err)
+		return nil, fmt.Errorf("Prompt: failed to request llmClient.Generate: %w", err)
 	}
 
 	resp := &core.PromptResponse{Text: llmResp.Answer}
