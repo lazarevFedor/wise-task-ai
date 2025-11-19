@@ -34,6 +34,16 @@ func GetLoggerFromCtx(ctx context.Context) *Logger {
 	return ctx.Value(Key).(*Logger)
 }
 
+func NewContextWithLogger(ctx context.Context, log *Logger) context.Context{
+	ctx = context.WithValue(ctx, Key, log)
+	return ctx
+}
+
+func WithRequestID(ctx context.Context, request_id string) context.Context{
+	ctx = context.WithValue(ctx, RequestID, request_id)
+	return ctx
+}
+
 func (l *Logger) Info(ctx context.Context, msg string, fields ...zap.Field) {
 	if ctx.Value(RequestID) != nil {
 		fields = append(fields, zap.String(RequestID, ctx.Value(RequestID).(string)))
