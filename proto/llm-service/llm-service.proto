@@ -14,7 +14,7 @@ service llmService {
 message GenerateRequest {
   string question = 1;
   repeated string contexts = 2;
-  int64 requestId = 3;
+  string requestId = 3;
 }
 
 message GenerateResponse {
