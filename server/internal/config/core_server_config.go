@@ -9,6 +9,7 @@ import (
 )
 
 type CoreServerConfig struct {
+	LLMServer LLMServerConfig `env-prefix:"LLM_GRPC_"`
 	Postgres db.PostgresConfig `env-prefix:"POSTGRES_"`
 	Host     string            `env:"CORE_SERVER_HOST"`
 	IntPort  string            `env:"CORE_SERVER_INT_PORT"`
