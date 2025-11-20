@@ -1,16 +1,32 @@
 import os
 from typing import List, Dict, Optional
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
 
 from searchModule import Searcher
 
 
+QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
+QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
+COLLECTION_NAME = os.getenv("COLLECTION_NAME", "latex_books")
+
+EMBEDDING_MODEL = os.getenv(
+    "EMBEDDING_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+)
+
+API_KEY = os.getenv("API_KEY")
+
+DEFAULT_SEARCH_LIMIT = int(os.getenv("DEFAULT_SEARCH_LIMIT", "5"))
+DEFAULT_RAG_LIMIT = int(os.getenv("DEFAULT_RAG_LIMIT", "5"))
+DEFAULT_CONTEXT_CHARS = int(os.getenv("DEFAULT_CONTEXT_CHARS", "2000"))
+DEFAULT_SCORE_THRESHOLD = float(os.getenv("DEFAULT_SCORE_THRESHOLD", "0.3"))
+
+
 class SearchRequest(BaseModel):
     query: str
-    limit: int = 5
-    score_threshold: float = 0.3
+    limit: int = DEFAULT_SEARCH_LIMIT
+    score_threshold: float = DEFAULT_SCORE_THRESHOLD
 
 
 class SearchResponse(BaseModel):
@@ -25,13 +41,6 @@ class HealthResponse(BaseModel):
     points_count: Optional[int] = None
 
 
-QDRANT_HOST = os.getenv("QDRANT_HOST", "localhost")
-QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
-COLLECTION_NAME = os.getenv("COLLECTION_NAME", "latex_books")
-EMBEDDING_MODEL = os.getenv(
-    "EMBEDDING_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-)
-
 app = FastAPI(
     title="RAG Search API",
     description="API for qdrant-db",
@@ -42,14 +51,32 @@ app = FastAPI(
 searcher: Optional[Searcher] = None
 
 
+@app.middleware("http")
+async def api_key_middleware(request: Request, call_next):
+    if API_KEY:
+        if request.url.path in ["/", "/health"]:
+            return await call_next(request)
+        provided_key = request.headers.get("X-Api-Key")
+        if provided_key != API_KEY:
+            return ORJSONResponse(
+                {"error": "Invalid or missing API key"},
+                status_code=401
+            )
+    return await call_next(request)
+
+
 @app.on_event("startup")
 def startup_event():
     global searcher
 
     print("Запуск API сервиса...")
-    print(f"  Qdrant: {QDRANT_HOST}:{QDRANT_PORT}")
-    print(f"  Коллекция: {COLLECTION_NAME}")
-    print(f"  Модель: {EMBEDDING_MODEL}")
+    print(f"Qdrant: {QDRANT_HOST}:{QDRANT_PORT}")
+    print(f"Коллекция: {COLLECTION_NAME}")
+    print(f"Модель: {EMBEDDING_MODEL}")
+    print(f"API Key: {'настроен ' if API_KEY else 'не задан (публичный доступ)'}")
+    print(f"limits:search={DEFAULT_SEARCH_LIMIT}"
+          f",rag={DEFAULT_RAG_LIMIT},"
+          f"ctx={DEFAULT_CONTEXT_CHARS}")
 
     try:
         searcher = Searcher(
@@ -79,6 +106,13 @@ def health_check():
             "distance": "cosine",
             "model": EMBEDDING_MODEL,
             "query_prefix": "",
+            "config": {
+                "default_search_limit": DEFAULT_SEARCH_LIMIT,
+                "default_rag_limit": DEFAULT_RAG_LIMIT,
+                "default_context_chars": DEFAULT_CONTEXT_CHARS,
+                "default_score_threshold": DEFAULT_SCORE_THRESHOLD,
+                "api_key_enabled": API_KEY is not None,
+            },
         }
     except Exception:
         return {
@@ -89,6 +123,13 @@ def health_check():
             "distance": "cosine",
             "model": EMBEDDING_MODEL,
             "query_prefix": "",
+            "config": {
+                "default_search_limit": DEFAULT_SEARCH_LIMIT,
+                "default_rag_limit": DEFAULT_RAG_LIMIT,
+                "default_context_chars": DEFAULT_CONTEXT_CHARS,
+                "default_score_threshold": DEFAULT_SCORE_THRESHOLD,
+                "api_key_enabled": API_KEY is not None,
+            },
         }
 
 
@@ -132,47 +173,12 @@ def search(request: SearchRequest):
         raise HTTPException(status_code=500, detail=f"Search error: {str(e)}")
 
 
-@app.get("/v1/search-simple")
-def search_simple(
-    q: str, limit: int = 5, collection: Optional[str] = None, max_chars: int = 800
-):
-    if searcher is None:
-        raise HTTPException(status_code=503, detail="Searcher not initialized")
-
-    if not q or not q.strip():
-        raise HTTPException(status_code=400, detail="Query 'q' cannot be empty")
-
-    try:
-        raw_results = searcher.search(query=q, limit=limit, score_threshold=0.3)
-
-        results = [
-            {
-                "id": r.get("id"),
-                "score": r.get("final_score"),
-                "payload": {
-                    "title": r.get("title", ""),
-                    "source": r.get("source", ""),
-                    "chunk_index": r.get("chunk_index", 0),
-                    "text": r.get("text", ""),
-                },
-            }
-            for r in raw_results
-        ]
-
-        return {
-            "query": q,
-            "collection": collection or COLLECTION_NAME,
-            "results": results,
-            "count": len(results),
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Search error: {str(e)}")
-
-
-@app.get("/v1/rag-simple")
-def rag_simple(
-    q: str, limit: int = 5, context_chars: int = 2000, collection: Optional[str] = None
+@app.get("/v1/rag")
+def rag(
+    q: str,
+        limit: int = DEFAULT_RAG_LIMIT,
+        context_chars: int = DEFAULT_CONTEXT_CHARS,
+        collection: Optional[str] = None
 ):
     if searcher is None:
         raise HTTPException(status_code=503, detail="Searcher not initialized")

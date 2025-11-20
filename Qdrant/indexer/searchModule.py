@@ -83,7 +83,6 @@ class Searcher:
             ):
                 final_score *= 1.15
 
-            # 5. Бонус за длинный содержательный текст (> 500 символов)
             if text_length > 500 and link_count / max(text_length, 1) < 0.1:
                 final_score *= 1.1
 

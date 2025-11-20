@@ -34,7 +34,7 @@ class SimpleIndexer:
         self.vector_size = len(sample_vec)
         print(f"Размерность векторов: {self.vector_size}")
 
-        self.chunker = LaTeXChunker(chunk_size=800, overlap=100)
+        self.chunker = LaTeXChunker()
 
     def wait_for_qdrant(self, timeout: int = 120):
         print(f"Ожидание Qdrant на {self.qdrant_host}:{self.qdrant_port}...")

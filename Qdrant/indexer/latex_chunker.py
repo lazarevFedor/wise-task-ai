@@ -1,3 +1,4 @@
+import os
 import re
 from pathlib import Path
 from typing import List, Dict
@@ -6,10 +7,19 @@ from pylatexenc.latex2text import LatexNodes2Text
 
 class LaTeXChunker:
 
-    def __init__(self, chunk_size: int = 800, overlap: int = 100):
-        self.chunk_size = chunk_size
-        self.overlap = overlap
+    def __init__(
+        self,
+        chunk_size: int | None = None,
+        overlap: int | None = None,
+        min_chunk_size: int | None = None
+    ):
+        self.chunk_size = chunk_size or int(os.getenv("CHUNK_MAX_LEN", "800"))
+        self.overlap = overlap or int(os.getenv("CHUNK_OVERLAP", "100"))
+        self.min_chunk_size = min_chunk_size or int(os.getenv("CHUNK_MIN_LEN", "200"))
         self.converter = LatexNodes2Text()
+        print(f"Chunker init: chunk_size={self.chunk_size},"
+              f" overlap={self.overlap}, "
+              f"min={self.min_chunk_size}")
 
     def read_latex_file(self, filepath: Path) -> tuple[str, str, str]:
         raw_latex = ""
@@ -54,6 +64,11 @@ class LaTeXChunker:
             section_chunks = self._split_section(section, title, filepath.name)
 
             for chunk_text in section_chunks:
+                text_without_prefix = chunk_text.split('\n\n', 1)[-1] \
+                    if '\n\n' in chunk_text \
+                    else chunk_text
+                if len(text_without_prefix.strip()) < self.min_chunk_size:
+                    continue
                 chunks.append(
                     {
                         "id": chunk_id,
