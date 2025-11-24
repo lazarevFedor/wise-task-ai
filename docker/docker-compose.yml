@@ -4,8 +4,8 @@ services:
   llm_server:
     container_name: llm_server
     build:
-      context: ..
-      dockerfile: llm-service/Dockerfile
+      context: ../llm-service
+      dockerfile: Dockerfile
     ports:
       - "8084:8084"
     env_file:
@@ -13,16 +13,28 @@ services:
     networks:
       - core_network
       - llm_network
+    depends_on:
+      - llama_cpp
 
-  ollama:
-    container_name: ollama
-    image: ollama/ollama:latest
-    volumes:
-      - ../ollama:/root/.ollama
+  llama_cpp:
+    container_name: llama_cpp
+    build:
+      context: ../llama_cpp
+      dockerfile: Dockerfile
     ports:
-    - "11343:11343"
-    environment:
-      OLLAMA_KEEP_ALIVE: -1
+      - "11343:11343"
+    command: >
+      --host 0.0.0.0
+      --port 11343
+      -m /opt/model.gguf
+      -c 4096
+      --mlock
+      --threads 8
+      --threads-batch 8
+      --flash-attn on
+      --cache-ram 0
+      --slot-prompt-similarity 0.0
+      --no-context-shift
     networks:
       - core_network
       - llm_network
