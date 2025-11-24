@@ -2,7 +2,7 @@ FROM python:3.13 AS builder
 
 WORKDIR /app
 
-COPY llm-service/requirements.txt .
+COPY requirements.txt .
 
 RUN pip install --no-cache-dir --user -r requirements.txt
 
@@ -12,7 +12,7 @@ WORKDIR /app
 
 COPY --from=builder /root/.local /root/.local
 
-COPY llm-service/ .
+COPY . .
 
 ENV PATH=/root/.local/bin:$PATH
 
