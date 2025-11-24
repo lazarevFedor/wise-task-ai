@@ -47,7 +47,8 @@ class LLMClient:
         self._request_counter = 0
         self._error_counter = 0
         self.logger.debug('Initializing LLMClient: client created. '
-                         'List of llama.cpp URLs: %s', str(self.llama_urls))
+                          'List of llama.cpp URLs: %s',
+                          str(self.llama_urls))
 
     async def initialize(self):
         """

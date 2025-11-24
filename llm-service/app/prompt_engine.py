@@ -43,7 +43,7 @@ class PromptEngine:
                 with open(template_file, 'r', encoding='utf8') as f:
                     self.templates[template_name] = f.read().strip()
                 self.logger.debug(f'PromptEngine: '
-                                 f'template {template_name} loaded')
+                                  f'template {template_name} loaded')
         except Exception as e:
             self.logger.critical(f'PromptEngine: template loading failed: {e}')
             raise Exception('PromptEngine: template loading failed') from e
