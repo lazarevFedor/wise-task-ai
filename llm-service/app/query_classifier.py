@@ -34,13 +34,13 @@ class QueryClassifier:
 
         for pattern in Pattern.definition_patterns:
             if re.search(pattern, question_lower):
-                self.logger.info(f'Question classified as DEFINITION: "{question}"')
+                self.logger.debug(f'Question classified as DEFINITION: "{question}"')
                 return 'definition'
 
         for pattern in Pattern.explanation_patterns:
             if re.search(pattern, question_lower):
-                self.logger.info(f'Question classified as EXPLANATION: "{question}"')
+                self.logger.debug(f'Question classified as EXPLANATION: "{question}"')
                 return 'explanation'
 
-        self.logger.info(f'Question classified as EXPLANATION (default): "{question}"')
+        self.logger.debug(f'Question classified as EXPLANATION (default): "{question}"')
         return 'explanation'
