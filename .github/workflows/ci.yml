@@ -7,6 +7,7 @@ on:
       - feature/llm-service
       - feature/server
       - test/llm-service
+      - feature/llama_cpp
   pull_request:
     branches:
       - main
