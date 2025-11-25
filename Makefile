@@ -14,6 +14,10 @@ build:
 	docker compose -f ./docker/docker-compose.yml up -d --build migrator
 	docker compose -f ./docker/docker-compose.yml --env-file .env up -d --build core_server
 
+llm:
+	docker compose -f docker/docker-compose.yml --env-file .env up -d --build ollama
+	docker compose -f docker/docker-compose.yml --env-file .env up -d --build llm_server
+
 down:
 	docker compose -f ./docker/docker-compose.yml down -v
 

@@ -54,13 +54,15 @@ services:
       - QDRANT_HOST=qdrant_db
       - QDRANT_PORT=6333
       - QDRANT_GRPC_PORT=6334
+      - COLLECTION_NAME=latex_books
+      - EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
     networks:
       - core_network
     volumes:
+      - ../Qdrant/indexer:/app:ro
       - ../Qdrant/cache/huggingface:/root/.cache/huggingface
       - ../Qdrant/cache/sentence-transformers:/root/.cache/sentence-transformers
-      - ../Qdrant/cache/pymorphy2:/root/.cache/pymorphy2
-    command: ["uvicorn", "ingest_service:app", "--host", "0.0.0.0", "--port", "8080"]
+    command: ["uvicorn", "apiModule:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
 
   qdrant_indexer:
     container_name: qdrant_indexer
@@ -74,16 +76,17 @@ services:
     environment:
       - QDRANT_HOST=qdrant_db
       - QDRANT_PORT=6333
+      - COLLECTION_NAME=latex_books
+      - EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
     volumes:
+      - ../Qdrant/indexer:/app:ro
       - ../Qdrant/latex_books:/data/latex_books:ro
       - ../Qdrant/latex_sources:/data/latex_sources:ro
       - ../Qdrant/cache/huggingface:/root/.cache/huggingface
       - ../Qdrant/cache/sentence-transformers:/root/.cache/sentence-transformers
-      - ../Qdrant/cache/pymorphy2:/root/.cache/pymorphy2
     networks:
       - core_network
-    # Индексацию выполняют как job:
-    # docker compose run --rm qdrant_indexer python main.py --recreate --batch-size 64
+    # docker compose run --rm qdrant_indexer python indexer.py --recreate
 
   qdrant_db:
     container_name: qdrant_db
@@ -130,7 +133,11 @@ services:
     volumes:
       - ../db_data/feedback:/var/lib/postgresql/data
     healthcheck:
-      test: CMD-SHELL pg_isready -h localhost -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"
+      test: >
+        CMD-SHELL
+        pg_isready
+        -U "$(cat /run/secrets/postgres_user)"
+        -d "$(cat /run/secrets/postgres_db)"
       interval: 10s
       timeout: 10s
       retries: 5
