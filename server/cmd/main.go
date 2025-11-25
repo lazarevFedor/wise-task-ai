@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"net"
 
-	
 	"github.com/lazarevFedor/wise-task-ai/server/internal/config"
-	"github.com/lazarevFedor/wise-task-ai/server/internal/interceptors"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/coreserver"
+	"github.com/lazarevFedor/wise-task-ai/server/internal/graceful"
+	"github.com/lazarevFedor/wise-task-ai/server/internal/interceptors"
 
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/api/core-service"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/api/llm-service"
@@ -45,7 +45,6 @@ func main() {
 		log.Error(rootCtx, "failed to connect to Postgres", zap.Error(err))
 		return
 	}
-	defer pgClient.Close()
 
 	dbClients = &db.Clients{
 		Postgres: pgClient,
@@ -58,11 +57,10 @@ func main() {
 		log.Error(rootCtx, "failed to connect to LLM Service", zap.Error(err))
 		return
 	}
-	defer conn.Close()
 
 	llmClient := llm.NewLlmServiceClient(conn)
 
-	log.Info(rootCtx, "Server starting at: ",
+	log.Info(rootCtx, "Server starting at:",
 		zap.String("IntHost", cfg.Host),
 		zap.String("IntPort", cfg.IntPort),
 		zap.String("RestPort", cfg.RestPort))
@@ -85,8 +83,33 @@ func main() {
 
 	reflection.Register(server)
 
-	log.Info(rootCtx, "Server is listening")
-	if err = server.Serve(lis); err != nil {
-		log.Error(rootCtx, "Failed to launch server", zap.Error(err))
+	go func() {
+		log.Info(rootCtx, "Server is listening")
+		if err = server.Serve(lis); err != nil {
+			log.Error(rootCtx, "Failed to launch server", zap.Error(err))
+		}
+	}()
+
+	// Graceful Shutdown
+
+	var postgresDBCloser = func(ctx context.Context) error {
+		log := logger.GetLoggerFromCtx(ctx)
+		log.Info(ctx, "Postgres Client is closing")
+		pgClient.Close()
+		return nil
 	}
+
+	var llmConnCloser = func(ctx context.Context) error {
+		log := logger.GetLoggerFromCtx(ctx)
+		log.Info(ctx, "LLM Client connection is closing")
+		conn.Close()
+		return nil
+	}
+
+	graceful.Wait(
+		rootCtx,
+		server,
+		postgresDBCloser,
+		llmConnCloser,
+	)
 }
