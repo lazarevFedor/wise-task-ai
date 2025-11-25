@@ -28,7 +28,7 @@ class TestLLMClient:
     def test_init_with_default_values(self):
         """Test init with default values."""
         client = llm_client.LLMClient()
-        assert client.ollama_urls == ['http://ollama:11434']
+        assert client.llama_urls == ['http://llama_cpp:11343']
         assert client.max_concurrent_requests == 3
         assert client.request_timeout == 120.0
 

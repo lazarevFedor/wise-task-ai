@@ -138,10 +138,12 @@ class llmServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
                     modelLoaded='',
                 )
 
+            await self.llm_client.health_check()
+
             return llm_service_pb2.HealthResponse(
                 healthy=True,
                 status_message='Service is healthy',
-                modelLoaded='llama3.2:3b-instruct-q4_K_M',
+                modelLoaded=config.LLM_DEFAULT_MODEL,
             )
 
         except Exception as e:
@@ -175,13 +177,13 @@ async def serve_grpc(host: str = 'localhost', port: int = 8084):
 
     try:
         prompts_dir = Path(__file__).parent.parent / 'prompts'
-        logger.info(f'Loading prompts from: {prompts_dir}')
+        logger.debug(f'Loading prompts from: {prompts_dir}')
 
         prompt_engine = PromptEngine(prompts_dir)
         llm_client = LLMClient()
 
         await llm_client.initialize()
-        logger.info('LLM client initialized successfully')
+        logger.debug('LLM client initialized successfully')
 
         server = grpc.aio.server(
             futures.ThreadPoolExecutor(max_workers=10),

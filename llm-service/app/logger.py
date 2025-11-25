@@ -16,7 +16,7 @@ def get_logger(name) -> logging.Logger:
     """
     logging.basicConfig(
         handlers=[logging.StreamHandler()],
-        level=logging.INFO,
+        level=logging.DEBUG,
         format='%(asctime)s - %(levelname)s - %(name)s - %(message)s'
     )
     logger = logging.getLogger(f'llm_service.{name}')
