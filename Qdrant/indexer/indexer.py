@@ -1,0 +1,207 @@
+import os
+import time
+from pathlib import Path
+from typing import Dict
+from tqdm import tqdm
+
+from qdrant_client import QdrantClient
+from qdrant_client.http.models import Distance, VectorParams, PointStruct
+from fastembed import TextEmbedding
+
+from latex_chunker import LaTeXChunker
+
+
+class SimpleIndexer:
+
+    def __init__(
+        self,
+        qdrant_host: str = "localhost",
+        qdrant_port: int = 6333,
+        collection_name: str = "latex_books",
+        embedding_model: str = "sentence-transformers/"
+                               "paraphrase-multilingual-MiniLM-L12-v2",
+    ):
+        self.qdrant_host = qdrant_host
+        self.qdrant_port = qdrant_port
+        self.collection_name = collection_name
+
+        self.client = QdrantClient(host=qdrant_host, port=qdrant_port)
+
+        print(f"Загружаем модель: {embedding_model}")
+        self.embedding_model = TextEmbedding(embedding_model)
+
+        sample_vec = list(self.embedding_model.embed(["test"]))[0]
+        self.vector_size = len(sample_vec)
+        print(f"Размерность векторов: {self.vector_size}")
+
+        self.chunker = LaTeXChunker()
+
+    def wait_for_qdrant(self, timeout: int = 120):
+        print(f"Ожидание Qdrant на {self.qdrant_host}:{self.qdrant_port}...")
+        start = time.time()
+
+        while time.time() - start < timeout:
+            try:
+                self.client.get_collections()
+                print("✓ Qdrant готов!")
+                return
+            except Exception:
+                time.sleep(2)
+
+        raise TimeoutError(f"Qdrant не отвечает после {timeout}s")
+
+    def create_collection(self, recreate: bool = False):
+        collections = self.client.get_collections().collections
+        collection_exists = any(c.name == self.collection_name for c in collections)
+
+        if collection_exists:
+            if recreate:
+                print(f"Удаляем существующую коллекцию: {self.collection_name}")
+                self.client.delete_collection(self.collection_name)
+            else:
+                print(f"Коллекция {self.collection_name} уже существует")
+                return
+
+        print(f"Создаем коллекцию: {self.collection_name}")
+        self.client.create_collection(
+            collection_name=self.collection_name,
+            vectors_config=VectorParams(
+                size=self.vector_size, distance=Distance.COSINE
+            ),
+        )
+        print(f"✓ Коллекция {self.collection_name} создана")
+
+    def index_directory(self, directory: Path, max_files: int | None = None):
+        if not directory.exists():
+            raise FileNotFoundError(f"Директория не найдена: {directory}")
+
+        tex_files = list(directory.glob("*.tex"))
+
+        if max_files:
+            tex_files = tex_files[:max_files]
+
+        print(f"Найдено {len(tex_files)} LaTeX файлов")
+
+        if not tex_files:
+            print("⚠ Нет файлов для индексации")
+            return
+
+        all_points = []
+        point_id = 0
+
+        for filepath in tqdm(tex_files, desc="Обработка файлов"):
+            try:
+                chunks = self.chunker.chunk_document(filepath)
+
+                texts = [chunk["text"] for chunk in chunks]
+                embeddings = list(self.embedding_model.embed(texts))
+
+                for chunk, embedding in zip(chunks, embeddings):
+                    point = PointStruct(
+                        id=point_id,
+                        vector=list(embedding),
+                        payload={
+                            "text": chunk["text"],
+                            "title": chunk["title"],
+                            "source": chunk["source"],
+                            "chunk_index": chunk["chunk_index"],
+                            "section": chunk["section"],
+                        },
+                    )
+                    all_points.append(point)
+                    point_id += 1
+
+            except Exception as e:
+                print(f"\n⚠ Ошибка обработки {filepath.name}: {e}")
+                continue
+
+        batch_size = 100
+        print(f"\nЗагрузка {len(all_points)} чанков в Qdrant...")
+
+        for i in tqdm(range(0, len(all_points), batch_size), desc="Загрузка в Qdrant"):
+            batch = all_points[i: i + batch_size]
+            self.client.upsert(
+                collection_name=self.collection_name, points=batch, wait=True
+            )
+
+        print(f"\n✓ Загружено {len(all_points)} чанков из {len(tex_files)} файлов")
+
+    def get_collection_info(self) -> Dict:
+        try:
+            info = self.client.get_collection(self.collection_name)
+            return {
+                "name": self.collection_name,
+                "vectors_count": info.vectors_count,
+                "points_count": info.points_count,
+                "status": info.status,
+            }
+        except Exception as e:
+            return {"error": str(e)}
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Индексация LaTeX документов в Qdrant")
+    parser.add_argument(
+        "--data-dir",
+        type=str,
+        default="/data/latex_books",
+        help="Директория с LaTeX файлами",
+    )
+    parser.add_argument(
+        "--host",
+        type=str,
+        default=os.getenv("QDRANT_HOST", "localhost"),
+        help="Хост Qdrant",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=int(os.getenv("QDRANT_PORT", "6333")),
+        help="Порт Qdrant",
+    )
+    parser.add_argument(
+        "--collection", type=str, default="latex_books", help="Название коллекции"
+    )
+    parser.add_argument("--recreate", action="store_true", help="Пересоздать коллекцию")
+    parser.add_argument(
+        "--max-files", type=int, default=None, help="Максимальное количество файлов"
+    )
+    parser.add_argument(
+        "--model",
+        type=str,
+        default=os.getenv(
+            "EMBEDDING_MODEL",
+            "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+        ),
+        help="Модель для embeddings",
+    )
+
+    args = parser.parse_args()
+
+    indexer = SimpleIndexer(
+        qdrant_host=args.host,
+        qdrant_port=args.port,
+        collection_name=args.collection,
+        embedding_model=args.model,
+    )
+
+    indexer.wait_for_qdrant()
+
+    indexer.create_collection(recreate=args.recreate)
+
+    data_dir = Path(args.data_dir)
+    indexer.index_directory(data_dir, max_files=args.max_files)
+
+    info = indexer.get_collection_info()
+    print(f"\n{'=' * 50}")
+    print("Статистика коллекции:")
+    print(f"  Название: {info.get('name', 'N/A')}")
+    print(f"  Количество точек: {info.get('points_count', 'N/A')}")
+    print(f"  Статус: {info.get('status', 'N/A')}")
+    print(f"{'=' * 50}")
+
+
+if __name__ == "__main__":
+    main()
