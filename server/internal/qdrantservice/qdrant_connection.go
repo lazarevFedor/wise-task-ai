@@ -19,14 +19,14 @@ type qdrantRequest struct {
 }
 
 type qdrantResponse struct {
+	Query      string         `json:"query"`
     Collection string         `json:"collection"`
-    Query      string         `json:"query"`
     Results    []qdrantResult `json:"results"`
     Count      int            `json:"count"`
 }
 
 type qdrantResult struct {
-    ID      string         `json:"id"`
+    ID      int         `json:"id"`
     Score   float64        `json:"score"`
     Payload qdrantPayload  `json:"payload"`
 }
@@ -49,7 +49,7 @@ func Search(prompt string) ([]string, error) {
 
 	reqBody, _ := json.Marshal(qdrantRequest{
 		Query: prompt,
-		Limit: 5,
+		Limit: 3,
 	})
 	req, _ := http.NewRequest("POST", QdrantURL+"/v1/search", bytes.NewBuffer(reqBody))
 	req.Header.Set("Content-Type", "application/json")
