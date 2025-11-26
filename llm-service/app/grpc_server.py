@@ -79,7 +79,7 @@ class llmServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
             self.logger.debug(
                 'Sending prompt to LLM...'
             )
-            answer = await self.llm_client.generate(prompt=prompt)
+            answer = await self.llm_client.generate(prompt=prompt, )
             processing_time = now() - start_time
             self.logger.debug(
                 f'request_id={request.requestId} - '

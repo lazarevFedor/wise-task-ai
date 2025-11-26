@@ -175,4 +175,4 @@ def grid_search(data):
 
 
 if __name__ == '__main__':
-    grid_search(def_dataset)
+    grid_search(def_dataset[:6])
