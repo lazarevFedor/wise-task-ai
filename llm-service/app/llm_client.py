@@ -73,7 +73,9 @@ class LLMClient:
             self.current_url_index = (self.current_url_index + 1) % len(self.llama_urls)
             return url
 
-    async def generate(self, prompt: str, model: str = None, query_type: str = None) -> str:
+    async def generate(self, prompt: str,
+                       model: str = None,
+                       query_type: str = None) -> str:
         """
         Generates an answer from the given prompt using the llama.cpp.
 
@@ -118,7 +120,7 @@ class LLMClient:
         repeat_penalty = 1.05
         num_predict = 32
 
-        if query_type is 'explanation':
+        if query_type == 'explanation':
             temp = 0.5
             top_p = 0.7
             top_k = 40
