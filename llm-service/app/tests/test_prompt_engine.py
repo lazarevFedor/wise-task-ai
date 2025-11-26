@@ -84,9 +84,9 @@ class TestPromptEngine:
     </response_structure>
 </prompt>"""
 
-        (prompts_dir / 'definition.xml').write_text(definition_template,
+        (prompts_dir / 'definition.txt').write_text(definition_template,
                                                     encoding='utf-8')
-        (prompts_dir / 'explanation.xml').write_text(explanation_template,
+        (prompts_dir / 'explanation.txt').write_text(explanation_template,
                                                      encoding='utf-8')
 
         yield prompts_dir
