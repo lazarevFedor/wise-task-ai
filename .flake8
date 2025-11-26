@@ -19,3 +19,5 @@ exclude =
     third_party/
     llm-service/prompts/
     llm-service/app/llm_service/
+    llm-service/app/eval_model/definitions_dataset.py
+    llm-service/app/eval_model/explanations_dataset.py
