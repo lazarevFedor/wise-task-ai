@@ -116,14 +116,14 @@ class LLMClient:
         top_p = 0.5
         top_k = 20
         repeat_penalty = 1.05
-        num_predict = 64
+        num_predict = 32
 
         if query_type is 'explanation':
             temp = 0.5
             top_p = 0.7
             top_k = 40
             repeat_penalty = 1.05
-            num_predict = 128
+            num_predict = 64
 
         data = {
             'model': model,
@@ -135,7 +135,7 @@ class LLMClient:
             'repeat_penalty': repeat_penalty,
             'num_predict': num_predict,
             'seed': 42,
-            'stop': ['\n\n', 'Ответ:']
+            'stop': ['Ответ:']
         }
 
         self._request_counter += 1
