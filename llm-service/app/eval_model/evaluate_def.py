@@ -1,5 +1,5 @@
 from rouge import calculate_rouge_scores
-from bleu_score import calculate_bleu_score
+from bleu import calculate_bleu_score
 from definitions_dataset import def_dataset
 from itertools import product
 from generate_answer import generate_answer
@@ -51,7 +51,8 @@ def evaluate_model_responses(data,
             temperature=temperature,
             top_p=top_p,
             top_k=top_k,
-            repeat_penalty=repeat_penalty
+            repeat_penalty=repeat_penalty,
+            n_predict=32
         )
         generated_answers.append(generated_answer)
         references.append(item['answer'])
@@ -175,4 +176,4 @@ def grid_search(data):
 
 
 if __name__ == '__main__':
-    grid_search(def_dataset[:6])
+    grid_search(def_dataset)
