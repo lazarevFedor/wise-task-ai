@@ -24,7 +24,7 @@ func main() {
 
 	// Logger
 	rootCtx := context.Background()
-	rootCtx, err := logger.NewLoggerContext(rootCtx)
+	rootCtx, err := logger.NewLoggerContext(rootCtx, true)
 	log := logger.GetLoggerFromCtx(rootCtx)
 	if err != nil {
 		log.Error(rootCtx, "Failed to make new logger", zap.Error(err))
@@ -71,13 +71,10 @@ func main() {
 		return
 	}
 	server := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptors.UnaryServerInterceptor(rootCtx)),
+		grpc.UnaryInterceptor(interceptors.ContextInterceptor(rootCtx)),
 	)
 
-	coreServer, err := coreserver.NewServer(llmClient, *dbClients)
-	if err != nil {
-		log.Error(rootCtx, "failed to create coreServer", zap.Error(err))
-	}
+	coreServer := coreserver.NewServer(llmClient, *dbClients)
 
 	core.RegisterCoreServiceServer(server, coreServer)
 
