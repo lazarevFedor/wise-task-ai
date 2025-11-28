@@ -3,12 +3,19 @@ syntax = "proto3";
 option go_package = "api/core";
 package api;
 
+service CoreService{
+	rpc Prompt(PromptRequest) returns (PromptResponse);
+	rpc Feedback(FeedbackRequest) returns (FeedbackResponse);
+	rpc HealthCheck(HealthRequest) returns (HealthResponse);
+}
+
 message PromptRequest{
 	string text = 1;
 }
 
 message PromptResponse{
 	string text = 1;
+	double processingTime = 2;
 }
 
 message FeedbackRequest{
@@ -18,10 +25,10 @@ message FeedbackRequest{
 }
 
 message FeedbackResponse{
-	string error = 1;
 }
 
-service CoreService{
-	rpc Prompt(PromptRequest) returns (PromptResponse);
-	rpc Feedback(FeedbackRequest) returns (FeedbackResponse);
+message HealthRequest{}
+
+message HealthResponse{
+	bool healthy = 1;
 }
