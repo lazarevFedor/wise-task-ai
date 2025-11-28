@@ -150,10 +150,10 @@ class llmServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
                 modelLoaded=config.LLM_DEFAULT_MODEL,
             )
 
-        except Exception as _:
+        except Exception:
             return llm_service_pb2.HealthResponse(
                 healthy=False,
-                status_message=f'LLM_UNHEALTH',
+                status_message='LLM_UNHEALTH',
                 modelLoaded='',
             )
 
