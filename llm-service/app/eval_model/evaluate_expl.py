@@ -65,13 +65,12 @@ def evaluate_model_responses(data,
         rouge1_scores.append(rouge_scores['rouge1_f1'])
         rouge2_scores.append(rouge_scores['rouge2_f1'])
 
-    # Replaced BLEU with BERTScore calculation
     bert_scores = calculate_bertscore(references, generated_answers)
     bert_f1_scores = bert_scores['f1']
 
     avg_rouge1 = sum(rouge1_scores) / len(rouge1_scores)
     avg_rouge2 = sum(rouge2_scores) / len(rouge2_scores)
-    avg_bertscore = sum(bert_f1_scores) / len(bert_f1_scores)  # Average BERTScore F1
+    avg_bertscore = sum(bert_f1_scores) / len(bert_f1_scores)
     weighted_score = 0.25 * avg_rouge1 + 0.25 * avg_rouge2 + 0.5 * avg_bertscore
 
     return {
