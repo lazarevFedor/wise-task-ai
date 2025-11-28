@@ -5,7 +5,8 @@ from logging import error, basicConfig, DEBUG
 basicConfig(level=DEBUG)
 
 
-def generate_answer(question, context, temperature, top_p, top_k, repeat_penalty, n_predict):
+def generate_answer(question, context, temperature, top_p,
+                    top_k, repeat_penalty, n_predict):
     """
     Generate an answer for a given question using context
     by querying a local language model API.
