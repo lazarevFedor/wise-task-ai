@@ -28,6 +28,7 @@ services:
       --port 11343
       -m /opt/model.gguf
       -c 4096
+      -b 2048
       --mlock
       --threads 8
       --threads-batch 8
