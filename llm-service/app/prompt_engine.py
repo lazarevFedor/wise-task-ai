@@ -16,7 +16,7 @@ class PromptEngine:
             prompts_dir: The directory path containing prompt template TXT files.
         """
         self.logger = get_logger(__name__)
-        self.prompts_dir = prompts_dir  # later catch None val
+        self.prompts_dir = prompts_dir
         self.templates = {}
 
         self._load_templates()

@@ -28,6 +28,7 @@ services:
       --port 11343
       -m /opt/model.gguf
       -c 4096
+      -b 2048
       --mlock
       --threads 8
       --threads-batch 8
@@ -35,7 +36,7 @@ services:
       --flash-attn on
       --slot-prompt-similarity 0.9
       -np 3
-      --cache-ram 1
+      --cache-ram 5
       --no-context-shift
       --no-webui
     networks:
