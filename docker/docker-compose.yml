@@ -36,7 +36,7 @@ services:
       --flash-attn on
       --slot-prompt-similarity 0.9
       -np 3
-      --cache-ram 1
+      --cache-ram 5
       --no-context-shift
       --no-webui
     networks:
