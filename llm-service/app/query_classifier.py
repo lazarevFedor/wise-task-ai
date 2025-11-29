@@ -15,7 +15,7 @@ class QueryClassifier:
         """
         self.logger = get_logger(__name__)
 
-    def classify(self, question: str) -> Literal["definition", "explanation"]:
+    def classify(self, question: str) -> Literal['definition', 'explanation', 'wise_task']:
         """
         Detects query type based on predefined patterns in the question.
 
@@ -27,10 +27,15 @@ class QueryClassifier:
             question (str): The input question to classify.
 
         Returns:
-            Literal["definition", "explanation"]: The detected query type.
+            Literal['definition', 'explanation']: The detected query type.
         """
         question_lower = question.lower().strip()
         self.logger.debug(f'Classifying question: "{question}"')
+
+        for pattern in Pattern.wisetask_patterns:
+            if re.search(pattern, question_lower):
+                self.logger.debug(f'Question classified as WISE_TASK: "{question}"')
+                return 'wise_task'
 
         for pattern in Pattern.definition_patterns:
             if re.search(pattern, question_lower):
