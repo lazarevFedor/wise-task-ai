@@ -101,7 +101,7 @@ class llmServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
                 error_message = "LLM_TIMEOUT"
             else:
                 error_message = "LLM_UNAVAILABLE"
-            self.logger.error(f'request_id={request.requestId} - ' + error_message)
+            self.logger.error(f'request_id={request.requestId} - ' + str(e))
             return llm_service_pb2.GenerateResponse(
                 answer='',
                 processingTime=processing_time,
