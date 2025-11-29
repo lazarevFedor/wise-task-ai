@@ -1,5 +1,4 @@
 import re
-from typing import Literal
 from logger import get_logger
 from patterns import Pattern
 
@@ -15,7 +14,7 @@ class QueryClassifier:
         """
         self.logger = get_logger(__name__)
 
-    def classify(self, question: str) -> Literal['definition', 'explanation', 'wise_task']:
+    def classify(self, question: str):
         """
         Detects query type based on predefined patterns in the question.
 
