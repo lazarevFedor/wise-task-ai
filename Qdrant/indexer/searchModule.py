@@ -5,6 +5,8 @@ from typing import List, Dict, Set
 from qdrant_client import QdrantClient
 from fastembed import TextEmbedding
 from qdrant_client import models
+import logging
+logger = logging.getLogger(__name__)
 
 class Searcher:
     def __init__(
@@ -30,14 +32,14 @@ class Searcher:
 
     def _load_bm25(self):
         if os.path.exists(self.bm25_index_path):
-            print(f"Загружаем BM25 индекс из {self.bm25_index_path}...")
+            logger.info(f"Загружаем BM25 индекс из {self.bm25_index_path}...")
             with open(self.bm25_index_path, "rb") as f:
                 data = pickle.load(f)
                 self.bm25 = data["bm25"]
                 self.corpus = data["corpus"]
-            print(f"BM25 индекс загружен ({len(self.corpus)} документов)")
+            logger.info(f"BM25 индекс загружен ({len(self.corpus)} документов)")
         else:
-            print(f"BM25 индекс не найден. Поиск будет работать только через Qdrant.")
+            logger.info(f"BM25 индекс не найден. Поиск будет работать только через Qdrant.")
 
     def _tokenize_russian(self, text: str):
         text = text.lower()
@@ -320,7 +322,7 @@ def main():
 
     args = parser.parse_args()
 
-    print("Инициализация поисковика...")
+    logger.info("Инициализация поисковика...")
     searcher = Searcher(
         qdrant_host=args.host,
         qdrant_port=args.port,
@@ -330,12 +332,12 @@ def main():
         alpha=args.alpha,
     )
 
-    print(f"\nПоиск: '{args.query}'")
-    print(f"{'=' * 60}\n")
+    logger.info(f"\nПоиск: '{args.query}'")
+    logger.info(f"{'=' * 60}\n")
 
     results = searcher.search(args.query, limit=args.limit)
     formatted = searcher.format_results(results)
-    print(formatted)
+    logger.info(formatted)
 
 if __name__ == "__main__":
     main()

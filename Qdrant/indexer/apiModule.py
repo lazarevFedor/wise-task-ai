@@ -3,6 +3,14 @@ from typing import List, Dict, Optional
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import ORJSONResponse
 from pydantic import BaseModel
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s"
+)
+
+logger = logging.getLogger(__name__)
 
 from searchModule import Searcher
 
@@ -69,12 +77,12 @@ async def api_key_middleware(request: Request, call_next):
 def startup_event():
     global searcher
 
-    print("Запуск API сервиса...")
-    print(f"Qdrant: {QDRANT_HOST}:{QDRANT_PORT}")
-    print(f"Коллекция: {COLLECTION_NAME}")
-    print(f"Модель: {EMBEDDING_MODEL}")
-    print(f"API Key: {'настроен ' if API_KEY else 'не задан (публичный доступ)'}")
-    print(f"limits:search={DEFAULT_SEARCH_LIMIT}"
+    logger.info("Запуск API сервиса...")
+    logger.info(f"Qdrant: {QDRANT_HOST}:{QDRANT_PORT}")
+    logger.info(f"Коллекция: {COLLECTION_NAME}")
+    logger.info(f"Модель: {EMBEDDING_MODEL}")
+    logger.info(f"API Key: {'настроен ' if API_KEY else 'не задан (публичный доступ)'}")
+    logger.info(f"limits:search={DEFAULT_SEARCH_LIMIT}"
           f",rag={DEFAULT_RAG_LIMIT},"
           f"ctx={DEFAULT_CONTEXT_CHARS}")
 
@@ -85,9 +93,9 @@ def startup_event():
             collection_name=COLLECTION_NAME,
             embedding_model=EMBEDDING_MODEL,
         )
-        print("Поисковик инициализирован")
+        logger.info("Поисковик инициализирован")
     except Exception as e:
-        print(f"Ошибка инициализации: {e}")
+        logger.error(f"Ошибка инициализации: {e}")
         raise
 
 
