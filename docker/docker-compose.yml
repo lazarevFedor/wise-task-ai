@@ -39,6 +39,7 @@ services:
       --cache-ram 5
       --no-context-shift
       --no-webui
+      --no-warmup
     networks:
       - core_network
       - llm_network
