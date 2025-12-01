@@ -11,6 +11,7 @@ service CoreService{
 
 message PromptRequest{
 	string text = 1;
+	string limit = 2;
 }
 
 message PromptResponse{
