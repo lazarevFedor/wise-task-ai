@@ -13,19 +13,32 @@ services:
     networks:
       - core_network
       - llm_network
+    depends_on:
+      - llama_cpp
 
-  ollama:
-    container_name: ollama
-    build: 
-      context: ../ollama
+  llama_cpp:
+    container_name: llama_cpp
+    build:
+      context: ../llama_cpp
       dockerfile: Dockerfile
-    volumes:
-      - ../ollama:/root/.ollama
     ports:
-      - "11434:11434"
-    environment:
-      OLLAMA_KEEP_ALIVE: -1
-      MODEL: "llama3.2:3b-instruct-q4_K_M"
+      - "11343:11343"
+    command: >
+      --host 0.0.0.0
+      --port 11343
+      -m /opt/model.gguf
+      -c 4096
+      -b 2048
+      --mlock
+      --threads 8
+      --threads-batch 8
+      --threads-http 3
+      --flash-attn on
+      --slot-prompt-similarity 0.9
+      -np 3
+      --cache-ram 5
+      --no-context-shift
+      --no-webui
     networks:
       - core_network
       - llm_network

@@ -13,8 +13,8 @@ class GenerateRequest(_message.Message):
     REQUESTID_FIELD_NUMBER: _ClassVar[int]
     question: str
     contexts: _containers.RepeatedScalarFieldContainer[str]
-    requestId: int
-    def __init__(self, question: _Optional[str] = ..., contexts: _Optional[_Iterable[str]] = ..., requestId: _Optional[int] = ...) -> None: ...
+    requestId: str
+    def __init__(self, question: _Optional[str] = ..., contexts: _Optional[_Iterable[str]] = ..., requestId: _Optional[str] = ...) -> None: ...
 
 class GenerateResponse(_message.Message):
     __slots__ = ("answer", "processingTime", "errorMessage")

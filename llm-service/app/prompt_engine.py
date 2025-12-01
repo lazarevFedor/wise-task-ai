@@ -4,7 +4,7 @@ from logger import get_logger
 class PromptEngine:
     """
     Prompt Engine generates prompts with user questions and relevant contexts
-    from Knowledge Data Base for Ollama LLM.
+    from Knowledge Data Base for llama.cpp LLM.
     """
 
     def __init__(self, prompts_dir):
@@ -13,10 +13,10 @@ class PromptEngine:
         initialize templates dict and load prompt templates.
 
         Args:
-            prompts_dir: The directory path containing prompt template XML files.
+            prompts_dir: The directory path containing prompt template TXT files.
         """
         self.logger = get_logger(__name__)
-        self.prompts_dir = prompts_dir  # later catch None val
+        self.prompts_dir = prompts_dir
         self.templates = {}
 
         self._load_templates()
@@ -26,24 +26,24 @@ class PromptEngine:
         """
         Load prompt templates and add them into dictionary.
 
-        Scans the prompts_dir recursively for *.xml files, reads their contents,
+        Scans the prompts_dir recursively for *.txt files, reads their contents,
         and stores them in self.templates with the file stem as the key.
 
         Raises:
             Exception: If no template files are found or loading fails.
         """
         try:
-            template_files = list(self.prompts_dir.rglob('*.xml'))
+            template_files = list(self.prompts_dir.rglob('*.txt'))
             if not template_files:
                 self.logger.critical('PromptEngine: no template files found')
                 raise Exception('No template files found in directory')
 
-            for template_file in self.prompts_dir.rglob('*.xml'):
+            for template_file in self.prompts_dir.rglob('*.txt'):
                 template_name = template_file.stem
                 with open(template_file, 'r', encoding='utf8') as f:
                     self.templates[template_name] = f.read().strip()
-                self.logger.info(f'PromptEngine: '
-                                 f'template {template_name} loaded')
+                self.logger.debug(f'PromptEngine: '
+                                  f'template {template_name} loaded')
         except Exception as e:
             self.logger.critical(f'PromptEngine: template loading failed: {e}')
             raise Exception('PromptEngine: template loading failed') from e

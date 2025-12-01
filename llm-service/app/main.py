@@ -43,7 +43,7 @@ def main():
     try:
         asyncio.run(run_server())
     except KeyboardInterrupt:
-        logger.info('Server stopped gracefully')
+        logger.debug('Server stopped gracefully')
     except Exception as e:
         logger.error(f'Fatal error: {str(e)}')
 
