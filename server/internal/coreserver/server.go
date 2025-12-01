@@ -42,7 +42,7 @@ func (s *Server) Prompt(ctx context.Context, req *core.PromptRequest) (*core.Pro
 
 	resp := &core.PromptResponse{}
 
-	searchResult, err := qdrantservice.Search(req.Text)
+	searchResult, err := qdrantservice.Search(req.Text, req.Limit)
 	if err != nil {
 		dualErr := errors.NewDualError(err, errors.SearchFailedErr)
 		log.Error(ctx, "prompt: failed to search in Qdrant", zap.Error(dualErr.Internal()))
