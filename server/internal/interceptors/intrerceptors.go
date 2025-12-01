@@ -42,6 +42,9 @@ func ContextInterceptor(rootCtx context.Context) grpc.UnaryServerInterceptor {
 		} else {
 			childLogger.Info(ctx, "gRPC request completed",
 				zap.String("method", info.FullMethod),
+			)
+			childLogger.Debug(ctx, "gRPC request completed",
+				zap.String("method", info.FullMethod),
 				zap.Any("response", resp),
 			)
 		}
