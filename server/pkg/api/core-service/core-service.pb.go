@@ -24,6 +24,7 @@ const (
 type PromptRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Text          string                 `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
+	Limit         string                 `protobuf:"bytes,2,opt,name=limit,proto3" json:"limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -61,6 +62,13 @@ func (*PromptRequest) Descriptor() ([]byte, []int) {
 func (x *PromptRequest) GetText() string {
 	if x != nil {
 		return x.Text
+	}
+	return ""
+}
+
+func (x *PromptRequest) GetLimit() string {
+	if x != nil {
+		return x.Limit
 	}
 	return ""
 }
@@ -297,9 +305,10 @@ var File_core_service_core_service_proto protoreflect.FileDescriptor
 
 const file_core_service_core_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1fcore-service/core-service.proto\x12\x03api\"#\n" +
+	"\x1fcore-service/core-service.proto\x12\x03api\"9\n" +
 	"\rPromptRequest\x12\x12\n" +
-	"\x04text\x18\x01 \x01(\tR\x04text\"L\n" +
+	"\x04text\x18\x01 \x01(\tR\x04text\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\tR\x05limit\"L\n" +
 	"\x0ePromptResponse\x12\x12\n" +
 	"\x04text\x18\x01 \x01(\tR\x04text\x12&\n" +
 	"\x0eprocessingTime\x18\x02 \x01(\x01R\x0eprocessingTime\"Y\n" +

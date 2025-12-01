@@ -38,11 +38,15 @@ type QdrantHealthCheckResponse struct {
 	Status string `json:"status"`
 }
 
-func Search(prompt string) ([]string, error) {
-	limit := os.Getenv("SEARCH_DEFAULT_LIMIT")
+func Search(prompt, limit string) ([]string, error) {
+
 	if limit == "" {
-		return nil, fmt.Errorf("failed to get limit var from env")
+		limit = os.Getenv("SEARCH_DEFAULT_LIMIT")
+		if limit == "" {
+			return nil, fmt.Errorf("failed to get limit var from env")
+		}
 	}
+
 	QdrantURL := os.Getenv("QDRANT_INGEST_URL")
 	if QdrantURL == "" {
 		return nil, fmt.Errorf("failed to get QdrantURL var from env")
