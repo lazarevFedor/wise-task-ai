@@ -99,7 +99,9 @@ func main() {
 	var llmConnCloser = func(ctx context.Context) error {
 		log := logger.GetLoggerFromCtx(ctx)
 		log.Info(ctx, "LLM Client connection is closing")
-		conn.Close()
+		if err := conn.Close(); err != nil {
+			return fmt.Errorf("failed to close llm's connention: %w", err)
+		}
 		return nil
 	}
 
