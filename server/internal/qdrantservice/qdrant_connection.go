@@ -9,14 +9,9 @@ import (
 	"os"
 )
 
-const (
-	QdrantURL = "http://qdrant_ingest:8080"
-	limit     = 2
-)
-
 type qdrantRequest struct {
 	Query string `json:"query"`
-	Limit int    `json:"limit"`
+	Limit string `json:"limit"`
 }
 
 type qdrantResponse struct {
@@ -44,7 +39,16 @@ type QdrantHealthCheckResponse struct {
 }
 
 func Search(prompt string) ([]string, error) {
-	if err := CheckHealth(); err != nil {
+	limit := os.Getenv("SEARCH_DEFAULT_LIMIT")
+	if limit == "" {
+		return nil, fmt.Errorf("failed to get limit var from env")
+	}
+	QdrantURL := os.Getenv("QDRANT_INGEST_URL")
+	if QdrantURL == "" {
+		return nil, fmt.Errorf("failed to get QdrantURL var from env")
+	}
+
+	if err := CheckHealth(QdrantURL); err != nil {
 		return nil, fmt.Errorf("seacrh: Qdrant is unhealth: %w", err)
 	}
 
@@ -76,8 +80,7 @@ func Search(prompt string) ([]string, error) {
 	return result, nil
 }
 
-// FIXME: healthcheck endpoint returns "error" if error and "status" if alls okey, idk how to validate those situations
-func CheckHealth() error {
+func CheckHealth(QdrantURL string) error {
 	req, _ := http.NewRequest("GET", QdrantURL+"/health", nil)
 	if key := os.Getenv("API_KEY"); key != "" {
 		req.Header.Set("X-API-Key", key)
@@ -93,6 +96,7 @@ func CheckHealth() error {
 		return fmt.Errorf("ChecktHealth: failed to decode response: %w", err)
 	}
 
+	// FIXME: healthcheck endpoint returns "error" if error and "status" if alls ok, idk how to diff those situations
 	if response.Status != "ok" {
 		return fmt.Errorf("CheckHealth: Qdarant is unhealth, Status: %s", response.Status)
 	}

@@ -7,6 +7,7 @@ import (
 	"github.com/lazarevFedor/wise-task-ai/server/internal/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"os"
 	"time"
 
 	"go.uber.org/zap"
@@ -95,7 +96,12 @@ func (s *Server) HealthCheck(ctx context.Context, req *core.HealthRequest) (*cor
 		Healthy: false,
 	}
 
-	err := qdrantservice.CheckHealth()
+	QdrantURL := os.Getenv("QDRANT_INGEST_URL")
+	if QdrantURL == "" {
+		return nil, fmt.Errorf("failed to get QdrantURL var from env")
+	}
+
+	err := qdrantservice.CheckHealth(QdrantURL)
 	if err != nil {
 		dualErr := errors.NewDualError(err, errors.CoreUnavailableErr)
 		log.Error(ctx, "Core_HealthCheck: qdrant unhealth", zap.Error(dualErr.Internal()))
