@@ -11,15 +11,17 @@ class LaTeXChunker:
         self,
         chunk_size: int | None = None,
         overlap: int | None = None,
-        min_chunk_size: int | None = None
+        min_chunk_size: int | None = None,
     ):
         self.chunk_size = chunk_size or int(os.getenv("CHUNK_MAX_LEN", "2000"))
         self.overlap = overlap or int(os.getenv("CHUNK_OVERLAP", "300"))
         self.min_chunk_size = min_chunk_size or int(os.getenv("CHUNK_MIN_LEN", "1500"))
         self.converter = LatexNodes2Text()
-        print(f"Chunker init: chunk_size={self.chunk_size},"
-              f" overlap={self.overlap}, "
-              f"min={self.min_chunk_size}")
+        print(
+            f"Chunker init: chunk_size={self.chunk_size},"
+            f" overlap={self.overlap}, "
+            f"min={self.min_chunk_size}"
+        )
 
     def read_latex_file(self, filepath: Path) -> tuple[str, str, str]:
         raw_latex = ""
@@ -64,9 +66,11 @@ class LaTeXChunker:
             section_chunks = self._split_section(section, title, filepath.name)
 
             for chunk_text in section_chunks:
-                text_without_prefix = chunk_text.split('\n\n', 1)[-1] \
-                    if '\n\n' in chunk_text \
+                text_without_prefix = (
+                    chunk_text.split("\n\n", 1)[-1]
+                    if "\n\n" in chunk_text
                     else chunk_text
+                )
                 if len(text_without_prefix.strip()) < self.min_chunk_size:
                     continue
                 chunks.append(
@@ -120,20 +124,19 @@ class LaTeXChunker:
             chunks.append(f"{prefix}\n\n{chunk_text}")
         return chunks
 
-    def _flush_current_chunk(self,
-                             chunks: List[str],
-                             current_chunk: List[str],
-                             prefix: str):
+    def _flush_current_chunk(
+        self, chunks: List[str], current_chunk: List[str], prefix: str
+    ):
         if current_chunk:
             chunks.append(f"{prefix}\n\n" + "\n\n".join(current_chunk))
 
     def _process_small_paragraph(
-            self,
-            para: str,
-            current_chunk: List[str],
-            current_size: int,
-            chunks: List[str],
-            prefix: str,
+        self,
+        para: str,
+        current_chunk: List[str],
+        current_size: int,
+        chunks: List[str],
+        prefix: str,
     ) -> (List[str], int):
         para_size = len(para)
 

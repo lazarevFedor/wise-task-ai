@@ -6,8 +6,7 @@ from pydantic import BaseModel
 import logging
 
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s"
+    level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
 logger = logging.getLogger(__name__)
@@ -67,8 +66,7 @@ async def api_key_middleware(request: Request, call_next):
         provided_key = request.headers.get("X-Api-Key")
         if provided_key != API_KEY:
             return ORJSONResponse(
-                {"error": "Invalid or missing API key"},
-                status_code=401
+                {"error": "Invalid or missing API key"}, status_code=401
             )
     return await call_next(request)
 
@@ -82,9 +80,11 @@ def startup_event():
     logger.info(f"Коллекция: {COLLECTION_NAME}")
     logger.info(f"Модель: {EMBEDDING_MODEL}")
     logger.info(f"API Key: {'настроен ' if API_KEY else 'не задан (публичный доступ)'}")
-    logger.info(f"limits:search={DEFAULT_SEARCH_LIMIT}"
-          f",rag={DEFAULT_RAG_LIMIT},"
-          f"ctx={DEFAULT_CONTEXT_CHARS}")
+    logger.info(
+        f"limits:search={DEFAULT_SEARCH_LIMIT}"
+        f",rag={DEFAULT_RAG_LIMIT},"
+        f"ctx={DEFAULT_CONTEXT_CHARS}"
+    )
 
     try:
         searcher = Searcher(
@@ -164,9 +164,8 @@ def search(request: SearchRequest):
                     "title": r.get("title", ""),
                     "source": r.get("source", ""),
                     "chunk_index": r.get("chunk_index", 0),
-                    "text": r.get("text", "")
-                }
-
+                    "text": r.get("text", ""),
+                },
             }
             for r in raw_results
         ]
@@ -185,9 +184,9 @@ def search(request: SearchRequest):
 @app.get("/v1/rag")
 def rag(
     q: str,
-        limit: int = DEFAULT_RAG_LIMIT,
-        context_chars: int = DEFAULT_CONTEXT_CHARS,
-        collection: Optional[str] = None
+    limit: int = DEFAULT_RAG_LIMIT,
+    context_chars: int = DEFAULT_CONTEXT_CHARS,
+    collection: Optional[str] = None,
 ):
     if searcher is None:
         raise HTTPException(status_code=503, detail="Searcher not initialized")

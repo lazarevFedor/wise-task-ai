@@ -1,6 +1,6 @@
 import os
 import time
- import pickle
+import pickle
 from pathlib import Path
 from typing import Dict
 from tqdm import tqdm
@@ -17,7 +17,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-
 class SimpleIndexer:
 
     def __init__(
@@ -25,7 +24,8 @@ class SimpleIndexer:
             qdrant_host: str = "localhost",
             qdrant_port: int = 6333,
             collection_name: str = "latex_books",
-            embedding_model: str = "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
+            embedding_model: str = "sentence-transformers"
+                                   "/paraphrase-multilingual-mpnet-base-v2",
             bm25_index_path: str = "/app/data/bm25_index.pkl",
     ):
         self.qdrant_host = qdrant_host
@@ -127,7 +127,6 @@ class SimpleIndexer:
                     )
                     all_points.append(point)
 
-
                     self.corpus.append(chunk["text"])
                     tokenized_corpus.append(
                         self._tokenize_russian(chunk["text"])
@@ -150,7 +149,6 @@ class SimpleIndexer:
 
         logger.info(f"\n Загружено {len(all_points)} чанков из {len(tex_files)} файлов")
 
-
         logger.info(f"\nИндексируем {len(tokenized_corpus)} документов в BM25...")
         self.bm25 = BM25Okapi(tokenized_corpus)
 
@@ -160,7 +158,7 @@ class SimpleIndexer:
                 "bm25": self.bm25,
                 "corpus": self.corpus,
             }, f)
-        logger.info(f"BM25 индекс сохранён")
+        logger.info("BM25 индекс сохранён")
 
     def load_bm25_index(self):
         if os.path.exists(self.bm25_index_path):
