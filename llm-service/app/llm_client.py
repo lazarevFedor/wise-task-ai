@@ -73,7 +73,9 @@ class LLMClient:
             self.current_url_index = (self.current_url_index + 1) % len(self.llama_urls)
             return url
 
-    async def generate(self, prompt: str, model: str = None) -> str:
+    async def generate(self, prompt: str,
+                       model: str = None,
+                       query_type: str = None) -> str:
         """
         Generates an answer from the given prompt using the llama.cpp.
 
@@ -84,7 +86,8 @@ class LLMClient:
         Args:
             prompt (str): The input prompt for the LLM.
             model (str, optional): The model to use.
-            Defaults to 'TODO: add default model'.
+            query_type (str, optional): The query type to use.
+            Defaults to 'Qwen2.5:3B-Instruct'.
 
         Returns:
             str: The generated response from the LLM.
@@ -111,19 +114,30 @@ class LLMClient:
                 'Use: async with LLMClient() as client:'
             )
 
+        temp = 0.3
+        top_p = 0.5
+        top_k = 20
+        repeat_penalty = 1.05
+        num_predict = 32
+
+        if query_type == 'explanation':
+            temp = 0.5
+            top_p = 0.7
+            top_k = 40
+            repeat_penalty = 1.05
+            num_predict = 64
+
         data = {
             'model': model,
             'prompt': prompt,
             'stream': False,
-            'temperature': 0.5,
-            "top_p": 0.5,
-            "top_k": 20,
-            "repeat_penalty": 1.05,
-            "num_predict": 64,
-            "seed": 42,
-            "presence_penalty": 0.0,
-            "frequency_penalty": 0.0,
-            "stop": ["\n\n", "Ответ:"]
+            'temperature': temp,
+            'top_p': top_p,
+            'top_k': top_k,
+            'repeat_penalty': repeat_penalty,
+            'num_predict': num_predict,
+            'seed': 42,
+            'stop': ['Ответ:']
         }
 
         self._request_counter += 1

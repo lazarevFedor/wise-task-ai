@@ -1,7 +1,7 @@
+import grpc
 from time import time as now
 from concurrent import futures
 from pathlib import Path
-import grpc
 from llm_service import llm_service_pb2_grpc, llm_service_pb2
 from logger import get_logger
 from llm_client import LLMClient
@@ -9,6 +9,7 @@ from prompt_engine import PromptEngine
 from query_classifier import QueryClassifier
 from config import config
 from grpc_reflection.v1alpha import reflection
+from exceptions import LLMTimeoutError
 
 logger = get_logger(__name__)
 
@@ -79,7 +80,7 @@ class llmServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
             self.logger.debug(
                 'Sending prompt to LLM...'
             )
-            answer = await self.llm_client.generate(prompt=prompt)
+            answer = await self.llm_client.generate(prompt=prompt, )
             processing_time = now() - start_time
             self.logger.debug(
                 f'request_id={request.requestId} - '
@@ -96,8 +97,11 @@ class llmServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
 
         except Exception as e:
             processing_time = now() - start_time
-            error_message = f'Generation error: {str(e)}'
-            self.logger.error(f'request_id={request.requestId} - ' + error_message)
+            if isinstance(e, LLMTimeoutError):
+                error_message = "LLM_TIMEOUT"
+            else:
+                error_message = "LLM_UNAVAILABLE"
+            self.logger.error(f'request_id={request.requestId} - ' + str(e))
             return llm_service_pb2.GenerateResponse(
                 answer='',
                 processingTime=processing_time,
@@ -121,7 +125,7 @@ class llmServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
             if not self.prompt_engine.templates:
                 return llm_service_pb2.HealthResponse(
                     healthy=False,
-                    status_message='Prompt templates not loaded',
+                    status_message='LLM_UNHEALTH',
                     modelLoaded='',
                 )
 
@@ -134,7 +138,7 @@ class llmServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
             if not test_prompt:
                 return llm_service_pb2.HealthResponse(
                     healthy=False,
-                    status_message='Cannot build prompts',
+                    status_message='LLM_UNHEALTH',
                     modelLoaded='',
                 )
 
@@ -146,10 +150,10 @@ class llmServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
                 modelLoaded=config.LLM_DEFAULT_MODEL,
             )
 
-        except Exception as e:
+        except Exception:
             return llm_service_pb2.HealthResponse(
                 healthy=False,
-                status_message=f'Health check failed: {str(e)}',
+                status_message='LLM_UNHEALTH',
                 modelLoaded='',
             )
 
