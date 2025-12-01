@@ -26,6 +26,7 @@ docker/secrets
 Qdrant/cache/
 *.log
 Qdrant/latex_books
+Qdrant/latex_sources
 ollama
 
 # Notebooks and artifacts
