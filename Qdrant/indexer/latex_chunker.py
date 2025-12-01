@@ -13,9 +13,9 @@ class LaTeXChunker:
         overlap: int | None = None,
         min_chunk_size: int | None = None
     ):
-        self.chunk_size = chunk_size or int(os.getenv("CHUNK_MAX_LEN", "800"))
-        self.overlap = overlap or int(os.getenv("CHUNK_OVERLAP", "100"))
-        self.min_chunk_size = min_chunk_size or int(os.getenv("CHUNK_MIN_LEN", "200"))
+        self.chunk_size = chunk_size or int(os.getenv("CHUNK_MAX_LEN", "2000"))
+        self.overlap = overlap or int(os.getenv("CHUNK_OVERLAP", "300"))
+        self.min_chunk_size = min_chunk_size or int(os.getenv("CHUNK_MIN_LEN", "1500"))
         self.converter = LatexNodes2Text()
         print(f"Chunker init: chunk_size={self.chunk_size},"
               f" overlap={self.overlap}, "
@@ -73,8 +73,8 @@ class LaTeXChunker:
                     {
                         "id": chunk_id,
                         "text": chunk_text,
-                        "title": filepath.name,
-                        "source": filepath.name,
+                        "title": self._extract_title_from_filename(filepath.name),
+                        "source": self._extract_title_from_filename(filepath.name),
                         "chunk_index": chunk_id,
                         "section": section.get("title", ""),
                     }
@@ -193,6 +193,6 @@ class LaTeXChunker:
         return chunks
 
 
-def chunk_latex_file(filepath: Path, chunk_size: int = 800) -> List[Dict]:
+def chunk_latex_file(filepath: Path, chunk_size: int = 2000) -> List[Dict]:
     chunker = LaTeXChunker(chunk_size=chunk_size)
     return chunker.chunk_document(filepath)
