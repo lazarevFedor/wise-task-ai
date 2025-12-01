@@ -216,4 +216,5 @@ async def serve_grpc(host: str = 'localhost', port: int = 8084):
 
 
 def clean_knowledge_chunk(text: str) -> str:
-    return sub(r'^Просмотр_исходного_текста_страницы_[^\r\n]*\.tex\s*\|\s*', '', text, count=1).lstrip()
+    return sub(r'^Просмотр_исходного_текста_страницы_[^\r\n]*\.tex\s*\|\s*',
+               '', text, count=1).lstrip()
