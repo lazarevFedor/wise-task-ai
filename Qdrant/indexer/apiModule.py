@@ -12,7 +12,7 @@ QDRANT_PORT = int(os.getenv("QDRANT_PORT", "6333"))
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "latex_books")
 
 EMBEDDING_MODEL = os.getenv(
-    "EMBEDDING_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    "EMBEDDING_MODEL", "sentence-transformers/paraphrase-multilingual-mpnet-base-v2"
 )
 
 API_KEY = os.getenv("API_KEY")
@@ -156,8 +156,9 @@ def search(request: SearchRequest):
                     "title": r.get("title", ""),
                     "source": r.get("source", ""),
                     "chunk_index": r.get("chunk_index", 0),
-                    "text": r.get("text", ""),
-                },
+                    "text": r.get("text", "")
+                }
+
             }
             for r in raw_results
         ]
