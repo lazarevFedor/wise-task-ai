@@ -46,7 +46,7 @@ func (s *Server) Prompt(ctx context.Context, req *core.PromptRequest) (*core.Pro
 	if err != nil {
 		dualErr := errors.NewDualError(err, errors.SearchFailedErr)
 		log.Error(ctx, "prompt: failed to search in Qdrant", zap.Error(dualErr.Internal()))
-		return resp, status.Errorf(codes.Unavailable, "%s", dualErr.Public())
+		return resp, status.Error(codes.Unavailable, dualErr.Public())
 	}
 
 	log.Debug(ctx, "Sending Qdrant's response to LLM...:", zap.Strings("requests", searchResult))
@@ -58,7 +58,7 @@ func (s *Server) Prompt(ctx context.Context, req *core.PromptRequest) (*core.Pro
 	if err != nil {
 		dualErr := errors.NewDualError(err, errors.LLMUnavailableErr)
 		log.Error(ctx, "prompt: failed to request llmClient.Generate", zap.Error(err))
-		return resp, status.Errorf(codes.Unavailable, dualErr.Public())
+		return resp, status.Error(codes.Unavailable, dualErr.Public())
 	}
 
 	resp = &core.PromptResponse{
@@ -82,7 +82,7 @@ func (s *Server) Feedback(ctx context.Context, req *core.FeedbackRequest) (*core
 	if err := s.postgresRepo.InsertRate(ctx, feedback); err != nil {
 		dualErr := errors.NewDualError(err, errors.PSQLFailedErr)
 		log.Error(ctx, "failed to insert rate to postgres db", zap.Error(err))
-		return resp, status.Errorf(codes.Unavailable, "%s", dualErr.Public())
+		return resp, status.Error(codes.Unavailable, dualErr.Public())
 	}
 
 	return resp, nil
@@ -105,14 +105,14 @@ func (s *Server) HealthCheck(ctx context.Context, req *core.HealthRequest) (*cor
 	if err != nil {
 		dualErr := errors.NewDualError(err, errors.CoreUnavailableErr)
 		log.Error(ctx, "Core_HealthCheck: qdrant unhealth", zap.Error(dualErr.Internal()))
-		return resp, status.Errorf(codes.Unavailable, "%s", dualErr.Public())
+		return resp, status.Error(codes.Unavailable, dualErr.Public())
 	}
 
 	llmHealthResp, err := s.llmClient.HealthCheck(ctx, &llm.HealthRequest{})
 	if err != nil {
 		dualErr := errors.NewDualError(err, errors.LLMUnavailableErr)
 		log.Error(ctx, "failed to get response from llm service", zap.Error(dualErr.Internal()))
-		return resp, status.Errorf(codes.Unavailable, "%s", dualErr.Public())
+		return resp, status.Error(codes.Unavailable, dualErr.Public())
 	}
 
 	if !llmHealthResp.Healthy {
@@ -121,7 +121,7 @@ func (s *Server) HealthCheck(ctx context.Context, req *core.HealthRequest) (*cor
 			errors.LLMUnhealthErr,
 		)
 		log.Error(ctx, "HealthCheck: LLM service is unhealth", zap.Error(dualErr.Internal()))
-		return resp, status.Errorf(codes.Unavailable, "%s", dualErr.Public())
+		return resp, status.Error(codes.Unavailable, dualErr.Public())
 	}
 	resp.Healthy = true
 	return resp, nil
