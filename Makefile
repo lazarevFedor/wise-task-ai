@@ -20,9 +20,9 @@ build:
 	docker compose -f docker/docker-compose.yml --env-file .env up -d --build llama_cpp
 	docker compose -f docker/docker-compose.yml --env-file .env up -d --build llm_server
 
-	docker compose -f docker/docker-compose.yml run --rm qdrant_indexer python indexer.py --recreate
-	docker compose -f docker/docker-compose.yml up -d qdrant_db qdrant_ingest qdrant_indexer
-	
+	docker-compose -f docker/docker-compose.yml run --rm qdrant_indexer python indexer.py --data-dir /data/latex_books --recreate --bm25-index /app/data/bm25_index.pkl
+	docker compose -f docker/docker-compose.yml up -d --build qdrant_indexer qdrant_ingest --no-cache
+
 	docker compose -f docker/docker-compose.yml up -d --build postgresql_feedbacks
 	docker compose -f docker/docker-compose.yml up -d --build migrator
 	docker compose -f docker/docker-compose.yml --env-file .env up -d --build core_server
@@ -32,8 +32,9 @@ llm:
 	docker compose -f docker/docker-compose.yml --env-file .env up -d --build llm_server
 
 qdrant:
-	docker compose -f docker/docker-compose.yml run --rm qdrant_indexer python indexer.py --recreate
-	docker compose -f docker/docker-compose.yml up -d qdrant_db qdrant_ingest qdrant_indexer
+	docker-compose -f docker/docker-compose.yml run --rm qdrant_indexer python indexer.py --data-dir /data/latex_books --recreate --bm25-index /app/data/bm25_index.pkl
+	docker compose -f docker/docker-compose.yml up -d --build qdrant_indexer qdrant_ingest --no-cache
+
 
 core:
 	docker compose -f docker/docker-compose.yml up -d --build postgresql_feedbacks
