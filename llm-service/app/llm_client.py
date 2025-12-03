@@ -138,14 +138,14 @@ class LLMClient:
         top_p = 0.5
         top_k = 20
         repeat_penalty = 1.05
-        num_predict = 64
+        num_predict = 96
 
         if query_type == 'explanation':
             temp = 0.5
             top_p = 0.7
             top_k = 40
             repeat_penalty = 1.05
-            num_predict = 256
+            num_predict = 320
 
         data = {
             'model': model,

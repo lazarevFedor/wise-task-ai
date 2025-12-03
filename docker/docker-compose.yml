@@ -30,13 +30,13 @@ services:
       -c 4096
       -b 2048
       --mlock
-      --threads 8
-      --threads-batch 8
-      --threads-http 3
+      --threads 3
+      --threads-batch 3
+      --threads-http 1
       --flash-attn on
-      --slot-prompt-similarity 0.9
-      -np 3
-      --cache-ram 5
+      --slot-prompt-similarity 0.0
+      -np 1
+      --cache-ram 0
       --no-context-shift
       --no-webui
       --no-warmup
