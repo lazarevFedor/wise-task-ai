@@ -4,26 +4,26 @@ from typing import Optional
 from exceptions import LLMClientError, LLMTimeoutError, LLMUnavailableError
 from logger import get_logger
 from config import config
-# from re import search
+from re import search
 
 
-# def cut_incomplete_sentence_smart(text: str) -> str:
-#     text = text.strip()
-#     if not text:
-#         return text
-#
-#     if search(r'[.!?…)"\u201d\u201c\u2019]\s*$', text):
-#         return text
-#
-#     match = search(r'(.*[.!?…][)"\u201d\u201c\u2019]?)\s+', text)
-#     if match:
-#         return match.group(1)
-#
-#     match2 = search(r'(.*[.!?…][)"\u201d\u201c\u2019}]?)', text)
-#     if match2:
-#         return match2.group(1)
-#
-#     return text
+def cut_incomplete_sentence_smart(text: str) -> str:
+    text = text.strip()
+    if not text:
+        return text
+
+    if search(r'[.!?…)"\u201d\u201c\u2019]\s*$', text):
+        return text
+
+    match = search(r'(.*[.!?…][)"\u201d\u201c\u2019]?)\s+', text)
+    if match:
+        return match.group(1)
+
+    match2 = search(r'(.*[.!?…][)"\u201d\u201c\u2019}]?)', text)
+    if match2:
+        return match2.group(1)
+
+    return text
 
 
 class LLMClient:
@@ -168,7 +168,9 @@ class LLMClient:
                 async with self.session.post(url, json=data) as response:
                     if response.status == 200:
                         result = await response.json()
-                        return result.get('choices', [{}])[0].get('text', '').strip()
+                        return cut_incomplete_sentence_smart(
+                            result.get('choices', [{}])[0].get('text', '').strip()
+                        )
                     else:
                         error_description = await response.text()
                         self._error_counter += 1
