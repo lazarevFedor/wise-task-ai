@@ -19,8 +19,9 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	CoreService_Prompt_FullMethodName   = "/api.CoreService/Prompt"
-	CoreService_Feedback_FullMethodName = "/api.CoreService/Feedback"
+	CoreService_Prompt_FullMethodName      = "/api.CoreService/Prompt"
+	CoreService_Feedback_FullMethodName    = "/api.CoreService/Feedback"
+	CoreService_HealthCheck_FullMethodName = "/api.CoreService/HealthCheck"
 )
 
 // CoreServiceClient is the client API for CoreService service.
@@ -29,6 +30,7 @@ const (
 type CoreServiceClient interface {
 	Prompt(ctx context.Context, in *PromptRequest, opts ...grpc.CallOption) (*PromptResponse, error)
 	Feedback(ctx context.Context, in *FeedbackRequest, opts ...grpc.CallOption) (*FeedbackResponse, error)
+	HealthCheck(ctx context.Context, in *HealthRequest, opts ...grpc.CallOption) (*HealthResponse, error)
 }
 
 type coreServiceClient struct {
@@ -59,12 +61,23 @@ func (c *coreServiceClient) Feedback(ctx context.Context, in *FeedbackRequest, o
 	return out, nil
 }
 
+func (c *coreServiceClient) HealthCheck(ctx context.Context, in *HealthRequest, opts ...grpc.CallOption) (*HealthResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(HealthResponse)
+	err := c.cc.Invoke(ctx, CoreService_HealthCheck_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // CoreServiceServer is the server API for CoreService service.
 // All implementations must embed UnimplementedCoreServiceServer
 // for forward compatibility.
 type CoreServiceServer interface {
 	Prompt(context.Context, *PromptRequest) (*PromptResponse, error)
 	Feedback(context.Context, *FeedbackRequest) (*FeedbackResponse, error)
+	HealthCheck(context.Context, *HealthRequest) (*HealthResponse, error)
 	mustEmbedUnimplementedCoreServiceServer()
 }
 
@@ -80,6 +93,9 @@ func (UnimplementedCoreServiceServer) Prompt(context.Context, *PromptRequest) (*
 }
 func (UnimplementedCoreServiceServer) Feedback(context.Context, *FeedbackRequest) (*FeedbackResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Feedback not implemented")
+}
+func (UnimplementedCoreServiceServer) HealthCheck(context.Context, *HealthRequest) (*HealthResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HealthCheck not implemented")
 }
 func (UnimplementedCoreServiceServer) mustEmbedUnimplementedCoreServiceServer() {}
 func (UnimplementedCoreServiceServer) testEmbeddedByValue()                     {}
@@ -138,6 +154,24 @@ func _CoreService_Feedback_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _CoreService_HealthCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HealthRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CoreServiceServer).HealthCheck(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: CoreService_HealthCheck_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CoreServiceServer).HealthCheck(ctx, req.(*HealthRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // CoreService_ServiceDesc is the grpc.ServiceDesc for CoreService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +186,10 @@ var CoreService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Feedback",
 			Handler:    _CoreService_Feedback_Handler,
+		},
+		{
+			MethodName: "HealthCheck",
+			Handler:    _CoreService_HealthCheck_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

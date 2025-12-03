@@ -39,6 +39,7 @@ services:
       --cache-ram 5
       --no-context-shift
       --no-webui
+      --no-warmup
     networks:
       - core_network
       - llm_network
@@ -55,15 +56,17 @@ services:
     env_file:
       - ../.env
     environment:
+      - BM25_INDEX_PATH=/app/data/bm25_index.pkl
       - QDRANT_HOST=qdrant_db
       - QDRANT_PORT=6333
       - QDRANT_GRPC_PORT=6334
       - COLLECTION_NAME=latex_books
-      - EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+      - EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-mpnet-base-v2
     networks:
       - core_network
     volumes:
-      - ../Qdrant/indexer:/app:ro
+      - qdrant_data:/app/data
+      - ../Qdrant/indexer:/app
       - ../Qdrant/cache/huggingface:/root/.cache/huggingface
       - ../Qdrant/cache/sentence-transformers:/root/.cache/sentence-transformers
     command: ["uvicorn", "apiModule:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
@@ -78,19 +81,20 @@ services:
     env_file:
       - ../.env
     environment:
+      - BM25_INDEX_PATH=/app/data/bm25_index.pkl
       - QDRANT_HOST=qdrant_db
       - QDRANT_PORT=6333
       - COLLECTION_NAME=latex_books
-      - EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2
+      - EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-mpnet-base-v2
     volumes:
-      - ../Qdrant/indexer:/app:ro
+      - qdrant_data:/app/data
+      - ../Qdrant/indexer:/app
       - ../Qdrant/latex_books:/data/latex_books:ro
       - ../Qdrant/latex_sources:/data/latex_sources:ro
       - ../Qdrant/cache/huggingface:/root/.cache/huggingface
       - ../Qdrant/cache/sentence-transformers:/root/.cache/sentence-transformers
     networks:
       - core_network
-    # docker compose run --rm qdrant_indexer python indexer.py --recreate
 
   qdrant_db:
     container_name: qdrant_db
@@ -106,13 +110,13 @@ services:
       retries: 3
     networks:
       - core_network
-  
+
   core_server:
     container_name: core_server
     build:
       context: ..
       dockerfile: server/cmd/Dockerfile
-    ports: 
+    ports:
       - "8085:8085"
     env_file:
       - ../.env
@@ -120,7 +124,7 @@ services:
       - core_network
     depends_on:
       - migrator
-    
+
   postgresql_feedbacks:
     container_name: postgresql_feedbacks
     image: postgres:latest
@@ -130,7 +134,7 @@ services:
       - postgres_user
       - postgres_password
       - postgres_db
-    environment: 
+    environment:
       POSTGRES_USER_FILE: /run/secrets/postgres_user
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
       POSTGRES_DB_FILE: /run/secrets/postgres_db
@@ -168,8 +172,8 @@ services:
     depends_on:
     - postgresql_feedbacks
     entrypoint:
-      - /bin/sh 
-      - -c 
+      - /bin/sh
+      - -c
       - | 
         USER=$( cat $$POSTGRES_USER_FILE )
         PASSWORD=$( cat $$POSTGRES_PASSWORD_FILE )
@@ -192,8 +196,7 @@ networks:
     driver: bridge
   llm_network:
     driver: bridge
- 
+
 volumes:
   qdrant_storage:
-  
-  
+  qdrant_data:

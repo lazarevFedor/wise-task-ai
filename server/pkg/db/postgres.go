@@ -37,7 +37,7 @@ func NewPostgres(ctx context.Context, cfg PostgresConfig) (*pgxpool.Pool, error)
 	}
 
 	log := logger.GetLoggerFromCtx(ctx)
-	log.Info(ctx, "connected to postgres feedback db", zap.String("URL", connstring))
+	log.Debug(ctx, "connected to postgres feedback db", zap.String("URL", connstring))
 
 	return pgPool, nil
 }

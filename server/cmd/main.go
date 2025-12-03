@@ -24,7 +24,7 @@ func main() {
 
 	// Logger
 	rootCtx := context.Background()
-	rootCtx, err := logger.NewLoggerContext(rootCtx)
+	rootCtx, err := logger.NewLoggerContext(rootCtx, true)
 	log := logger.GetLoggerFromCtx(rootCtx)
 	if err != nil {
 		log.Error(rootCtx, "Failed to make new logger", zap.Error(err))
@@ -71,13 +71,10 @@ func main() {
 		return
 	}
 	server := grpc.NewServer(
-		grpc.UnaryInterceptor(interceptors.UnaryServerInterceptor(rootCtx)),
+		grpc.UnaryInterceptor(interceptors.ContextInterceptor(rootCtx)),
 	)
 
-	coreServer, err := coreserver.NewServer(llmClient, *dbClients)
-	if err != nil {
-		log.Error(rootCtx, "failed to create coreServer", zap.Error(err))
-	}
+	coreServer := coreserver.NewServer(llmClient, *dbClients)
 
 	core.RegisterCoreServiceServer(server, coreServer)
 
@@ -102,7 +99,9 @@ func main() {
 	var llmConnCloser = func(ctx context.Context) error {
 		log := logger.GetLoggerFromCtx(ctx)
 		log.Info(ctx, "LLM Client connection is closing")
-		conn.Close()
+		if err := conn.Close(); err != nil {
+			return fmt.Errorf("failed to close llm's connention: %w", err)
+		}
 		return nil
 	}
 

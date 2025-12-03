@@ -24,6 +24,7 @@ const (
 type PromptRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Text          string                 `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
+	Limit         string                 `protobuf:"bytes,2,opt,name=limit,proto3" json:"limit,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -65,11 +66,19 @@ func (x *PromptRequest) GetText() string {
 	return ""
 }
 
+func (x *PromptRequest) GetLimit() string {
+	if x != nil {
+		return x.Limit
+	}
+	return ""
+}
+
 type PromptResponse struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Text          string                 `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	Text           string                 `protobuf:"bytes,1,opt,name=text,proto3" json:"text,omitempty"`
+	ProcessingTime float64                `protobuf:"fixed64,2,opt,name=processingTime,proto3" json:"processingTime,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *PromptResponse) Reset() {
@@ -107,6 +116,13 @@ func (x *PromptResponse) GetText() string {
 		return x.Text
 	}
 	return ""
+}
+
+func (x *PromptResponse) GetProcessingTime() float64 {
+	if x != nil {
+		return x.ProcessingTime
+	}
+	return 0
 }
 
 type FeedbackRequest struct {
@@ -171,7 +187,6 @@ func (x *FeedbackRequest) GetResponse() string {
 
 type FeedbackResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Error         string                 `protobuf:"bytes,1,opt,name=error,proto3" json:"error,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -206,31 +221,109 @@ func (*FeedbackResponse) Descriptor() ([]byte, []int) {
 	return file_core_service_core_service_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *FeedbackResponse) GetError() string {
+type HealthRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HealthRequest) Reset() {
+	*x = HealthRequest{}
+	mi := &file_core_service_core_service_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HealthRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HealthRequest) ProtoMessage() {}
+
+func (x *HealthRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_core_service_core_service_proto_msgTypes[4]
 	if x != nil {
-		return x.Error
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
 	}
-	return ""
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HealthRequest.ProtoReflect.Descriptor instead.
+func (*HealthRequest) Descriptor() ([]byte, []int) {
+	return file_core_service_core_service_proto_rawDescGZIP(), []int{4}
+}
+
+type HealthResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Healthy       bool                   `protobuf:"varint,1,opt,name=healthy,proto3" json:"healthy,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *HealthResponse) Reset() {
+	*x = HealthResponse{}
+	mi := &file_core_service_core_service_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *HealthResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*HealthResponse) ProtoMessage() {}
+
+func (x *HealthResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_core_service_core_service_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use HealthResponse.ProtoReflect.Descriptor instead.
+func (*HealthResponse) Descriptor() ([]byte, []int) {
+	return file_core_service_core_service_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *HealthResponse) GetHealthy() bool {
+	if x != nil {
+		return x.Healthy
+	}
+	return false
 }
 
 var File_core_service_core_service_proto protoreflect.FileDescriptor
 
 const file_core_service_core_service_proto_rawDesc = "" +
 	"\n" +
-	"\x1fcore-service/core-service.proto\x12\x03api\"#\n" +
+	"\x1fcore-service/core-service.proto\x12\x03api\"9\n" +
 	"\rPromptRequest\x12\x12\n" +
-	"\x04text\x18\x01 \x01(\tR\x04text\"$\n" +
+	"\x04text\x18\x01 \x01(\tR\x04text\x12\x14\n" +
+	"\x05limit\x18\x02 \x01(\tR\x05limit\"L\n" +
 	"\x0ePromptResponse\x12\x12\n" +
-	"\x04text\x18\x01 \x01(\tR\x04text\"Y\n" +
+	"\x04text\x18\x01 \x01(\tR\x04text\x12&\n" +
+	"\x0eprocessingTime\x18\x02 \x01(\x01R\x0eprocessingTime\"Y\n" +
 	"\x0fFeedbackRequest\x12\x12\n" +
 	"\x04mark\x18\x01 \x01(\bR\x04mark\x12\x16\n" +
 	"\x06prompt\x18\x02 \x01(\tR\x06prompt\x12\x1a\n" +
-	"\bresponse\x18\x03 \x01(\tR\bresponse\"(\n" +
-	"\x10FeedbackResponse\x12\x14\n" +
-	"\x05error\x18\x01 \x01(\tR\x05error2y\n" +
+	"\bresponse\x18\x03 \x01(\tR\bresponse\"\x12\n" +
+	"\x10FeedbackResponse\"\x0f\n" +
+	"\rHealthRequest\"*\n" +
+	"\x0eHealthResponse\x12\x18\n" +
+	"\ahealthy\x18\x01 \x01(\bR\ahealthy2\xb1\x01\n" +
 	"\vCoreService\x121\n" +
 	"\x06Prompt\x12\x12.api.PromptRequest\x1a\x13.api.PromptResponse\x127\n" +
-	"\bFeedback\x12\x14.api.FeedbackRequest\x1a\x15.api.FeedbackResponseB\n" +
+	"\bFeedback\x12\x14.api.FeedbackRequest\x1a\x15.api.FeedbackResponse\x126\n" +
+	"\vHealthCheck\x12\x12.api.HealthRequest\x1a\x13.api.HealthResponseB\n" +
 	"Z\bapi/coreb\x06proto3"
 
 var (
@@ -245,20 +338,24 @@ func file_core_service_core_service_proto_rawDescGZIP() []byte {
 	return file_core_service_core_service_proto_rawDescData
 }
 
-var file_core_service_core_service_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_core_service_core_service_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_core_service_core_service_proto_goTypes = []any{
 	(*PromptRequest)(nil),    // 0: api.PromptRequest
 	(*PromptResponse)(nil),   // 1: api.PromptResponse
 	(*FeedbackRequest)(nil),  // 2: api.FeedbackRequest
 	(*FeedbackResponse)(nil), // 3: api.FeedbackResponse
+	(*HealthRequest)(nil),    // 4: api.HealthRequest
+	(*HealthResponse)(nil),   // 5: api.HealthResponse
 }
 var file_core_service_core_service_proto_depIdxs = []int32{
 	0, // 0: api.CoreService.Prompt:input_type -> api.PromptRequest
 	2, // 1: api.CoreService.Feedback:input_type -> api.FeedbackRequest
-	1, // 2: api.CoreService.Prompt:output_type -> api.PromptResponse
-	3, // 3: api.CoreService.Feedback:output_type -> api.FeedbackResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
+	4, // 2: api.CoreService.HealthCheck:input_type -> api.HealthRequest
+	1, // 3: api.CoreService.Prompt:output_type -> api.PromptResponse
+	3, // 4: api.CoreService.Feedback:output_type -> api.FeedbackResponse
+	5, // 5: api.CoreService.HealthCheck:output_type -> api.HealthResponse
+	3, // [3:6] is the sub-list for method output_type
+	0, // [0:3] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
 	0, // [0:0] is the sub-list for extension extendee
 	0, // [0:0] is the sub-list for field type_name
@@ -275,7 +372,7 @@ func file_core_service_core_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_core_service_core_service_proto_rawDesc), len(file_core_service_core_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

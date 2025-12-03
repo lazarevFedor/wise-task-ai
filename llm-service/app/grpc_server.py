@@ -10,6 +10,7 @@ from query_classifier import QueryClassifier
 from config import config
 from grpc_reflection.v1alpha import reflection
 from exceptions import LLMTimeoutError
+from re import sub
 
 logger = get_logger(__name__)
 
@@ -62,10 +63,10 @@ class llmServiceServicer(llm_service_pb2_grpc.llmServiceServicer):
             )
 
             template_type = self.query_classifier.classify(request.question)
-            if request.contexts:
-                context_text = '\n'.join(request.contexts)
-            else:
-                context_text = ''
+            context_text = ''
+            for ctx in request.contexts:
+                ctx = clean_knowledge_chunk(ctx)
+                context_text += ctx + '\n'
 
             self.logger.debug(
                 f'Template type: {template_type}'
@@ -212,3 +213,8 @@ async def serve_grpc(host: str = 'localhost', port: int = 8084):
         logger.error(f'Failed to start gRPC server: {e}')
         await llm_client.close()
         raise
+
+
+def clean_knowledge_chunk(text: str) -> str:
+    return sub(r'^Просмотр_исходного_текста_страницы_[^\r\n]*\.tex\s*\|\s*',
+               '', text, count=1).lstrip()

@@ -4,6 +4,18 @@ from typing import Optional
 from exceptions import LLMClientError, LLMTimeoutError, LLMUnavailableError
 from logger import get_logger
 from config import config
+from re import search
+
+
+def cut_incomplete_sentence_smart(text: str) -> str:
+    text = text.strip()
+    m = search(r'(.+?[.!?…])\s', text + ' ')
+    if m:
+        return m.group(1).strip()
+    m2 = search(r'(.*[.!?…])', text)
+    if m2:
+        return m2.group(1).strip()
+    return text
 
 
 class LLMClient:
@@ -118,14 +130,14 @@ class LLMClient:
         top_p = 0.5
         top_k = 20
         repeat_penalty = 1.05
-        num_predict = 32
+        num_predict = 64
 
         if query_type == 'explanation':
             temp = 0.5
             top_p = 0.7
             top_k = 40
             repeat_penalty = 1.05
-            num_predict = 64
+            num_predict = 256
 
         data = {
             'model': model,
@@ -136,6 +148,7 @@ class LLMClient:
             'top_k': top_k,
             'repeat_penalty': repeat_penalty,
             'num_predict': num_predict,
+            'max_tokens': num_predict,
             'seed': 42,
             'stop': ['Ответ:']
         }
@@ -147,7 +160,9 @@ class LLMClient:
                 async with self.session.post(url, json=data) as response:
                     if response.status == 200:
                         result = await response.json()
-                        return result.get('choices', [{}])[0].get('text', '').strip()
+                        return cut_incomplete_sentence_smart(
+                            result.get('choices', [{}])[0].get('text', '').strip()
+                        )
                     else:
                         error_description = await response.text()
                         self._error_counter += 1

@@ -1,8 +1,11 @@
 import os
 import time
+import pickle
 from pathlib import Path
 from typing import Dict
 from tqdm import tqdm
+from rank_bm25 import BM25Okapi
+import re
 
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams, PointStruct
@@ -10,40 +13,53 @@ from fastembed import TextEmbedding
 
 from latex_chunker import LaTeXChunker
 
+import logging
+logger = logging.getLogger(__name__)
+
 
 class SimpleIndexer:
 
     def __init__(
-        self,
-        qdrant_host: str = "localhost",
-        qdrant_port: int = 6333,
-        collection_name: str = "latex_books",
-        embedding_model: str = "sentence-transformers/"
-                               "paraphrase-multilingual-MiniLM-L12-v2",
+            self,
+            qdrant_host: str = "localhost",
+            qdrant_port: int = 6333,
+            collection_name: str = "latex_books",
+            embedding_model: str = "sentence-transformers"
+                                   "/paraphrase-multilingual-mpnet-base-v2",
+            bm25_index_path: str = "/app/data/bm25_index.pkl",
     ):
         self.qdrant_host = qdrant_host
         self.qdrant_port = qdrant_port
         self.collection_name = collection_name
+        self.bm25_index_path = bm25_index_path
 
         self.client = QdrantClient(host=qdrant_host, port=qdrant_port)
 
-        print(f"Загружаем модель: {embedding_model}")
+        logger.info(f"Загружаем модель: {embedding_model}")
         self.embedding_model = TextEmbedding(embedding_model)
 
-        sample_vec = list(self.embedding_model.embed(["test"]))[0]
-        self.vector_size = len(sample_vec)
-        print(f"Размерность векторов: {self.vector_size}")
+        self.vector_size = 768
+        logger.info(f"Размерность векторов: {self.vector_size}")
 
         self.chunker = LaTeXChunker()
 
+        self.bm25 = None
+        self.corpus = []
+
+    def _tokenize_russian(self, text: str):
+        text = text.lower()
+        text = re.sub(r'[^\w\s]', ' ', text)
+        tokens = text.split()
+        return tokens
+
     def wait_for_qdrant(self, timeout: int = 120):
-        print(f"Ожидание Qdrant на {self.qdrant_host}:{self.qdrant_port}...")
+        logger.info(f"Ожидание Qdrant на {self.qdrant_host}:{self.qdrant_port}...")
         start = time.time()
 
         while time.time() - start < timeout:
             try:
                 self.client.get_collections()
-                print("✓ Qdrant готов!")
+                logger.info("Qdrant готов!")
                 return
             except Exception:
                 time.sleep(2)
@@ -56,20 +72,20 @@ class SimpleIndexer:
 
         if collection_exists:
             if recreate:
-                print(f"Удаляем существующую коллекцию: {self.collection_name}")
+                logger.info(f"Удаляем существующую коллекцию: {self.collection_name}")
                 self.client.delete_collection(self.collection_name)
             else:
-                print(f"Коллекция {self.collection_name} уже существует")
+                logger.info(f"Коллекция {self.collection_name} уже существует")
                 return
 
-        print(f"Создаем коллекцию: {self.collection_name}")
+        logger.info(f"Создаем коллекцию: {self.collection_name}")
         self.client.create_collection(
             collection_name=self.collection_name,
             vectors_config=VectorParams(
                 size=self.vector_size, distance=Distance.COSINE
             ),
         )
-        print(f"✓ Коллекция {self.collection_name} создана")
+        logger.info(f"Коллекция {self.collection_name} создана")
 
     def index_directory(self, directory: Path, max_files: int | None = None):
         if not directory.exists():
@@ -80,14 +96,15 @@ class SimpleIndexer:
         if max_files:
             tex_files = tex_files[:max_files]
 
-        print(f"Найдено {len(tex_files)} LaTeX файлов")
+        logger.info(f"Найдено {len(tex_files)} LaTeX файлов")
 
         if not tex_files:
-            print("⚠ Нет файлов для индексации")
+            logger.error("Нет файлов для индексации")
             return
 
         all_points = []
         point_id = 0
+        tokenized_corpus = []
 
         for filepath in tqdm(tex_files, desc="Обработка файлов"):
             try:
@@ -109,14 +126,20 @@ class SimpleIndexer:
                         },
                     )
                     all_points.append(point)
+
+                    self.corpus.append(chunk["text"])
+                    tokenized_corpus.append(
+                        self._tokenize_russian(chunk["text"])
+                    )
+
                     point_id += 1
 
             except Exception as e:
-                print(f"\n⚠ Ошибка обработки {filepath.name}: {e}")
+                logger.error(f"\n Ошибка обработки {filepath.name}: {e}")
                 continue
 
         batch_size = 100
-        print(f"\nЗагрузка {len(all_points)} чанков в Qdrant...")
+        logger.info(f"\nЗагрузка {len(all_points)} чанков в Qdrant...")
 
         for i in tqdm(range(0, len(all_points), batch_size), desc="Загрузка в Qdrant"):
             batch = all_points[i: i + batch_size]
@@ -124,7 +147,31 @@ class SimpleIndexer:
                 collection_name=self.collection_name, points=batch, wait=True
             )
 
-        print(f"\n✓ Загружено {len(all_points)} чанков из {len(tex_files)} файлов")
+        logger.info(f"\n Загружено {len(all_points)} чанков из {len(tex_files)} файлов")
+
+        logger.info(f"\nИндексируем {len(tokenized_corpus)} документов в BM25...")
+        self.bm25 = BM25Okapi(tokenized_corpus)
+
+        logger.info(f"Сохраняем BM25 индекс в {self.bm25_index_path}...")
+        with open(self.bm25_index_path, "wb") as f:
+            pickle.dump({
+                "bm25": self.bm25,
+                "corpus": self.corpus,
+            }, f)
+        logger.info("BM25 индекс сохранён")
+
+    def load_bm25_index(self):
+        if os.path.exists(self.bm25_index_path):
+            logger.info(f"Загружаем BM25 индекс из {self.bm25_index_path}...")
+            with open(self.bm25_index_path, "rb") as f:
+                data = pickle.load(f)
+                self.bm25 = data["bm25"]
+                self.corpus = data["corpus"]
+            logger.info(f"BM25 индекс загружен ({len(self.corpus)} документов)")
+            return True
+        else:
+            logger.error(f"BM25 индекс не найден по пути {self.bm25_index_path}")
+            return False
 
     def get_collection_info(self) -> Dict:
         try:
@@ -173,9 +220,15 @@ def main():
         type=str,
         default=os.getenv(
             "EMBEDDING_MODEL",
-            "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+            "sentence-transformers/paraphrase-multilingual-mpnet-base-v2",
         ),
         help="Модель для embeddings",
+    )
+    parser.add_argument(
+        "--bm25-index",
+        type=str,
+        default="./bm25_index.pkl",
+        help="Путь к BM25 индексу",
     )
 
     args = parser.parse_args()
@@ -185,6 +238,7 @@ def main():
         qdrant_port=args.port,
         collection_name=args.collection,
         embedding_model=args.model,
+        bm25_index_path=args.bm25_index,
     )
 
     indexer.wait_for_qdrant()
@@ -195,12 +249,12 @@ def main():
     indexer.index_directory(data_dir, max_files=args.max_files)
 
     info = indexer.get_collection_info()
-    print(f"\n{'=' * 50}")
-    print("Статистика коллекции:")
-    print(f"  Название: {info.get('name', 'N/A')}")
-    print(f"  Количество точек: {info.get('points_count', 'N/A')}")
-    print(f"  Статус: {info.get('status', 'N/A')}")
-    print(f"{'=' * 50}")
+    logger.info(f"\n{'=' * 50}")
+    logger.info("Статистика коллекции:")
+    logger.info(f"  Название: {info.get('name', 'N/A')}")
+    logger.info(f"  Количество точек: {info.get('points_count', 'N/A')}")
+    logger.info(f"  Статус: {info.get('status', 'N/A')}")
+    logger.info(f"{'=' * 50}")
 
 
 if __name__ == "__main__":
