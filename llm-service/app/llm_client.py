@@ -9,12 +9,20 @@ from re import search
 
 def cut_incomplete_sentence_smart(text: str) -> str:
     text = text.strip()
-    m = search(r'(.+?[.!?…])\s', text + ' ')
-    if m:
-        return m.group(1).strip()
-    m2 = search(r'(.*[.!?…])', text)
-    if m2:
-        return m2.group(1).strip()
+    if not text:
+        return text
+
+    if search(r'[.!?…)"\u201d\u201c\u2019]\s*$', text):
+        return text
+
+    match = search(r'(.*[.!?…][)"\u201d\u201c\u2019]?)\s+', text)
+    if match:
+        return match.group(1)
+
+    match2 = search(r'(.*[.!?…][)"\u201d\u201c\u2019}]?)', text)
+    if match2:
+        return match2.group(1)
+
     return text
 
 
