@@ -1,0 +1,214 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "core-service/core-service.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "CoreService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/api/v1/feedback": {
+      "post": {
+        "summary": "Отправить отзыв на ответ модели",
+        "description": "Оставляет отзыв на ответ модели на сервере",
+        "operationId": "CoreService_Feedback",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiFeedbackResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiFeedbackRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CoreService"
+        ]
+      }
+    },
+    "/api/v1/healthcheck": {
+      "get": {
+        "summary": "Проверяет работоспособность сервиса",
+        "description": "Отправляет информацию о работоспособности сервиса",
+        "operationId": "CoreService_HealthCheck",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiHealthResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "CoreService"
+        ]
+      }
+    },
+    "/api/v1/prompt": {
+      "post": {
+        "summary": "Задать вопрос WiseTask",
+        "description": "Возвращает ответ на вопрос пользователя",
+        "operationId": "CoreService_Prompt",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiPromptResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/apiPromptRequest"
+            }
+          }
+        ],
+        "tags": [
+          "CoreService"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "apiFeedbackRequest": {
+      "type": "object",
+      "example": {
+        "mark": true,
+        "prompt": "Что такое минимальное остовное дерево?",
+        "response": "Минимальное остовное дерево — это..."
+      },
+      "properties": {
+        "mark": {
+          "type": "boolean",
+          "title": "Оценка пользователя на ответ модели (хорошо/плохо)"
+        },
+        "prompt": {
+          "type": "string",
+          "title": "Запрос, который отправил пользователь"
+        },
+        "response": {
+          "type": "string",
+          "title": "Ответ модели"
+        }
+      }
+    },
+    "apiFeedbackResponse": {
+      "type": "object"
+    },
+    "apiHealthResponse": {
+      "type": "object",
+      "example": {
+        "healthy": true
+      },
+      "properties": {
+        "healthy": {
+          "type": "boolean",
+          "title": "ответ сервиса о его состоянии"
+        }
+      }
+    },
+    "apiPromptRequest": {
+      "type": "object",
+      "example": {
+        "text": "Что такое минимальное остовное дерево?",
+        "limit": "5"
+      },
+      "properties": {
+        "text": {
+          "type": "string",
+          "title": "Запрос пользователя"
+        },
+        "limit": {
+          "type": "string",
+          "title": "кол-во необходимых контекстов (рекомендуется 5)"
+        }
+      }
+    },
+    "apiPromptResponse": {
+      "type": "object",
+      "example": {
+        "text": "Минимальное остовное дерево — это...",
+        "processingTime": 1.234
+      },
+      "properties": {
+        "text": {
+          "type": "string",
+          "title": "Ответ модели"
+        },
+        "processingTime": {
+          "type": "number",
+          "format": "double",
+          "title": "время, затраченное на генерацию (сек.)"
+        }
+      }
+    },
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    }
+  }
+}
