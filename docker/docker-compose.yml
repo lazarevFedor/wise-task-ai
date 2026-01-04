@@ -117,7 +117,7 @@ services:
       context: ..
       dockerfile: server/cmd/Dockerfile
     ports:
-      - "8085:8085"
+      - "8085:8086"
     env_file:
       - ../.env
     networks:
