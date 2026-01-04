@@ -3,13 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
-	"net"
-
 	"github.com/lazarevFedor/wise-task-ai/server/internal/config"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/coreserver"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/graceful"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/interceptors"
-
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/api/core-service"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/api/llm-service"
 	"github.com/lazarevFedor/wise-task-ai/server/pkg/db"
@@ -18,6 +15,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
+	"net"
 )
 
 func main() {
@@ -65,7 +63,7 @@ func main() {
 		zap.String("IntPort", cfg.IntPort),
 		zap.String("RestPort", cfg.RestPort))
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", cfg.RestPort))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", cfg.IntPort))
 	if err != nil {
 		log.Error(rootCtx, "failed to start core-server listening", zap.Error(err))
 		return

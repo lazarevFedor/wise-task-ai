@@ -48,6 +48,7 @@ func Search(prompt, limit string) ([]string, error) {
 	}
 
 	QdrantURL := os.Getenv("QDRANT_INGEST_URL")
+
 	if QdrantURL == "" {
 		return nil, fmt.Errorf("failed to get QdrantURL var from env")
 	}
