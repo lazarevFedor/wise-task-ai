@@ -3,6 +3,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"net"
+	"net/http"
+
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/config"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/coreserver"
 	"github.com/lazarevFedor/wise-task-ai/server/internal/graceful"
@@ -15,8 +19,27 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
-	"net"
 )
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		origin := r.Header.Get("Origin")
+		if origin != "" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+			w.Header().Set("Access-Control-Max-Age", "86400")
+			w.Header().Set("Vary", "Origin")
+		}
+
+		if r.Method == "OPTIONS" {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
 
 func main() {
 
@@ -82,6 +105,25 @@ func main() {
 		log.Info(rootCtx, "Server is listening")
 		if err = server.Serve(lis); err != nil {
 			log.Error(rootCtx, "Failed to launch server", zap.Error(err))
+		}
+	}()
+
+	// REST Gateway
+
+	mux := runtime.NewServeMux()
+	muxWithCORS := corsMiddleware(mux)
+	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
+	err = core.RegisterCoreServiceHandlerFromEndpoint(rootCtx, mux, cfg.Host+":"+cfg.IntPort, opts)
+	if err != nil {
+		log.Error(rootCtx, "failed to register endpoint in REST gateway", zap.Error(err))
+		return
+	}
+
+	go func() {
+		log.Info(rootCtx, "REST Gateway starting at port:", zap.String("RestPort", cfg.RestPort))
+		err = http.ListenAndServe(":"+cfg.RestPort, muxWithCORS)
+		if err != nil {
+			log.Error(rootCtx, "Server exited with error:", zap.Error(err))
 		}
 	}()
 
