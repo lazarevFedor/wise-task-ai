@@ -1,27 +1,86 @@
 syntax = "proto3";
 
-option go_package = "api/core";
 package api;
+option go_package = "api/core";
 
-service CoreService{
-	rpc Prompt(PromptRequest) returns (PromptResponse);
-	rpc Feedback(FeedbackRequest) returns (FeedbackResponse);
-	rpc HealthCheck(HealthRequest) returns (HealthResponse);
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+
+service CoreService {
+
+	// Отправляет запрос в сервис и возвращает ответ, сгенерированный моделью
+	rpc Prompt(PromptRequest) returns (PromptResponse) {
+		option (google.api.http) = {
+			post: "/api/v1/prompt"
+			body: "*"
+		};
+
+		option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Задать вопрос WiseTask"
+			description: "Возвращает ответ на вопрос пользователя"
+		};
+	}
+
+
+	// Отправляет оценку пользователя на Ответ модели в сервис
+	rpc Feedback(FeedbackRequest) returns (FeedbackResponse){
+		option(google.api.http) = {
+			post: "/api/v1/feedback"
+			body: "*"
+		};
+
+		option(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Отправить отзыв на ответ модели"
+			description: "Оставляет отзыв на ответ модели на сервере"
+		};
+	}
+
+	// Проверяет работоспособность сервиса
+	rpc HealthCheck(HealthRequest) returns (HealthResponse){
+		option(google.api.http) = {
+			get: "/api/v1/healthcheck"
+		};
+
+		option(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+			summary: "Проверяет работоспособность сервиса"
+			description: "Отправляет информацию о работоспособности сервиса"
+		};
+	}
 }
 
 message PromptRequest{
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+		example: "{\"text\": \"Что такое минимальное остовное дерево?\", \"limit\": \"5\"}"
+	};
+
+	// Запрос пользователя
 	string text = 1;
+	// кол-во необходимых контекстов (рекомендуется 5)
 	string limit = 2;
 }
 
 message PromptResponse{
+	option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+		example: "{\"text\": \"Минимальное остовное дерево — это...\", \"processingTime\": 1.234}"
+	};
+
+	// Ответ модели
 	string text = 1;
+	// время, затраченное на генерацию (сек.)
 	double processingTime = 2;
 }
 
 message FeedbackRequest{
+	option(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+		example: "{\"mark\": true, \"prompt\": \"Что такое минимальное остовное дерево?\", \"response\": \"Минимальное остовное дерево — это...\"}"
+	};
+
+	// Оценка пользователя на ответ модели (хорошо/плохо)
 	bool mark = 1;
+	// Запрос, который отправил пользователь
 	string prompt = 2;
+	// Ответ модели
 	string response = 3;
 }
 
@@ -31,5 +90,10 @@ message FeedbackResponse{
 message HealthRequest{}
 
 message HealthResponse{
+	option(grpc.gateway.protoc_gen_openapiv2.options.openapiv2_schema) = {
+		example: "{\"healthy\": true}"
+	};
+
+	// ответ сервиса о его состоянии
 	bool healthy = 1;
 }

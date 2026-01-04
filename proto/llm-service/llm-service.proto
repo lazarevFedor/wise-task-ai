@@ -3,8 +3,8 @@ syntax = "proto3";
 option go_package = "api/llm";
 package llm;
 
-// import "google/api/annotations.proto";
-// import "google/api/openapi.proto";
+//import "third_party/googleapis/google/api/http.proto";
+//import "third_party/googleapis/google/api/openapi.proto";
 
 service llmService {
   rpc Generate(GenerateRequest) returns (GenerateResponse);
