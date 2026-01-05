@@ -21,28 +21,40 @@ services:
     build:
       context: ../llama_cpp
       dockerfile: Dockerfile
+
+    gpus: all
+
+    environment:
+      NVIDIA_VISIBLE_DEVICES: all
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+
     ports:
       - "11343:11343"
+
     command: >
       --host 0.0.0.0
       --port 11343
       -m /opt/model.gguf
-      -c 4096
-      -b 2048
-      --mlock
-      --threads 3
-      --threads-batch 3
-      --threads-http 1
-      --flash-attn on
-      --slot-prompt-similarity 0.0
-      -np 1
-      --cache-ram 0
-      --no-context-shift
+
+      -ngl 37
+      --threads 6
+      --threads-batch 6
+      --threads-http 2
+
+      -c 6144
+      -b 1024
+      -ub 512
+
+      --cache-ram 4
       --no-webui
-      --no-warmup
+
     networks:
       - core_network
       - llm_network
+
+
+
+
 
   qdrant_ingest:
     container_name: qdrant_ingest
@@ -62,6 +74,7 @@ services:
       - QDRANT_GRPC_PORT=6334
       - COLLECTION_NAME=latex_books
       - EMBEDDING_MODEL=sentence-transformers/paraphrase-multilingual-mpnet-base-v2
+
     networks:
       - core_network
     volumes:
