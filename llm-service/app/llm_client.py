@@ -138,7 +138,7 @@ class LLMClient:
         top_p = 0.5
         top_k = 20
         repeat_penalty = 1.05
-        num_predict = 96
+        num_predict = 320
 
         if query_type == 'explanation':
             temp = 0.5
@@ -157,8 +157,7 @@ class LLMClient:
             'repeat_penalty': repeat_penalty,
             'num_predict': num_predict,
             'max_tokens': num_predict,
-            'seed': 42,
-            'stop': ['Ответ:']
+            'seed': 42
         }
 
         self._request_counter += 1
