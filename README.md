@@ -47,3 +47,7 @@ git clone https://github.com/lazarevFedor/wise-task-ai
 4. **API-доукментация**
 
 API-документация по доступным портам и запросам доступна по [ссылке](https://.postman.co/workspace/My-Workspace~5435c05b-0462-4127-8f19-b71cf68e75ba/collection/692f06f96deab71ed7ec2981?action=share&creator=43478788)
+
+## Полезные ссылки
+- https://wisetask.ru/ - сайт Wise Tasks
+- https://github.com/Terross/wise-task-frontend - репозиторий Wise Tasks
